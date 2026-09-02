@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>SuperTris — 俄羅斯方塊 × 超級瑪利歐</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- 橫向鎖定警告 (禁止橫向操作) -->
+  <div id="landscape-warning">
+    <p data-i18n="portrait_warning">⚠️ 請轉為直向模式遊玩（禁止橫向操作）</p>
+  </div>
+
+  <!-- 頂部導航列 -->
+  <header class="top-nav">
+    <div class="nav-brand">★ SUPERTRIS ★</div>
+    <div class="nav-buttons">
+      <button class="pixel-btn" id="lang-toggle-btn">EN</button>
+      <button class="pixel-btn" id="mute-toggle-btn">🔊</button>
+      <button class="pixel-btn pixel-btn-accent" id="leaderboard-btn" data-i18n="leaderboard">排行榜</button>
+    </div>
+  </header>
+
+  <!-- 標題主選單畫面 (Title Screen) -->
+  <section id="title-screen">
+    <h1 class="title-logo">SUPER TRIS</h1>
+
+    <div class="menu-buttons">
+      <button class="pixel-btn pixel-btn-accent menu-btn" id="play-single-btn" data-i18n="play_single">單人冒險模式</button>
+      <button class="pixel-btn menu-btn" id="play-coop-btn" data-i18n="play_coop">雙人合作模式</button>
+    </div>
+
+    <div class="title-footer">
+      <p data-i18n="controls_kb_p1">電腦 (P1): WASD/方向鍵, Space 快速落地, P 暫停</p>
+      <p data-i18n="controls_kb_p2" style="margin-top:4px;">雙人 (P2): 方向鍵 ←↓→ 移動, ↑ 旋轉, Enter 落地</p>
+    </div>
+  </section>
+
+  <!-- 遊戲主畫面 (HUD + Canvas) -->
+  <main id="hud" class="hidden" style="width: 100%; max-width: 480px;">
+    <!-- 道具 Buff 狀態列 -->
+    <div id="active-powerups" class="active-buffs" style="min-height: 20px; margin-bottom: 6px;"></div>
+
+    <!-- 遊戲佈局：中間 Canvas + 右側 大型資訊方框 -->
+    <div class="game-layout">
+      <!-- 左側 操作控制按鈕區 -->
+      <aside class="side-panel">
+        <button class="pixel-btn" id="pause-btn" data-i18n="pause" style="padding: 10px 6px;">暫停</button>
+        <button class="pixel-btn pixel-btn-red" id="restart-btn" data-i18n="restart" style="padding: 10px 6px;">重開</button>
+      </aside>
+
+      <!-- 中間 主棋盤畫布 -->
+      <div class="canvas-container">
+        <canvas id="game-canvas" width="280" height="560"></canvas>
+        <!-- 道具獲得提示 Toast -->
+        <div id="item-toast" class="item-toast hidden"></div>
+        <!-- Tetris 4行全螢幕特效 -->
+        <div id="tetris-firework-fx" class="tetris-fx hidden"></div>
+        <!-- 暫停遮罩 -->
+        <div id="pause-overlay" class="modal-backdrop hidden" style="position: absolute; cursor: pointer;">
+          <h2 style="color: var(--accent-gold);" data-i18n="pause">PAUSED (點擊繼續)</h2>
+        </div>
+      </div>
+
+      <!-- 右側 大型整潔資訊方框 (Next + 數值) -->
+      <aside class="side-panel">
+        <div class="panel-box main-info-box">
+          <span class="panel-title" data-i18n="next">下一塊</span>
+          <canvas id="next-canvas" width="60" height="60"></canvas>
+
+          <div class="info-divider"></div>
+
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="score">分數</span>
+            <span class="stat-val" id="hud-score">0</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="level">等級</span>
+            <span class="stat-val" id="hud-level">1</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="lines">消行</span>
+            <span class="stat-val" id="hud-lines">0</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label">🪙</span>
+            <span class="stat-val"><strong id="hud-coins">0</strong>/100</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-val" id="hud-lives" style="color: #2ecc71;">🍄 × 3</span>
+          </div>
+
+          <div id="hud-combo" class="stat-combo hidden"></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- 手機 SVG D-Pad 與操作按鈕 -->
+    <div id="mobile-controls" class="mobile-controls hidden">
+      <div class="dpad-container">
+        <svg id="dpad" viewBox="0 0 160 160" width="150" height="150" aria-hidden="true">
+          <path fill="#2b2b3d" stroke="#000" stroke-width="4" stroke-linejoin="round" d="M0 48 H160 V112 H112 V160 H48 V112 H0 Z" />
+          <circle cx="80" cy="80" r="18" fill="#1e1e2f" stroke="#000" stroke-width="3" />
+        </svg>
+      </div>
+      <div class="action-buttons">
+        <div class="btn-row">
+          <button class="pixel-btn round-btn pixel-btn-accent" id="btn-a">A</button>
+          <button class="pixel-btn round-btn" id="btn-pause-touch">⏸</button>
+        </div>
+        <button class="pixel-btn" id="btn-drop" style="width: 100%; padding: 8px 0;">DROP ⬇</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Game Over 結算 Modal -->
+  <div id="game-over-modal" class="modal-backdrop hidden">
+    <div class="pixel-modal">
+      <h2 class="modal-title" data-i18n="game_over">GAME OVER</h2>
+      <div id="go-new-record" class="hidden" style="color: #f1c40f;" data-i18n="new_record">🎉 破紀錄！歷史新高！</div>
+
+      <div class="stats-grid">
+        <div><span data-i18n="score">分數</span>: <strong id="go-score">0</strong></div>
+        <div><span data-i18n="cleared_lines">消行</span>: <strong id="go-lines">0</strong></div>
+        <div><span data-i18n="max_combo">最大連擊</span>: <strong id="go-combo">0</strong></div>
+        <div style="grid-column: span 2; color: var(--accent-gold);">
+          超越了 <strong id="go-percent">99</strong>% 玩家！
+        </div>
+      </div>
+
+      <input type="text" id="player-name-input" class="pixel-input" maxlength="20" data-i18n-placeholder="enter_name" placeholder="請輸入暱稱" />
+
+      <button class="pixel-btn pixel-btn-accent" id="btn-submit-score" data-i18n="submit_score">上傳紀錄</button>
+      <div style="display: flex; gap: 8px;">
+        <button class="pixel-btn" id="btn-play-again" style="flex: 1;" data-i18n="play_again">再玩一次</button>
+        <button class="pixel-btn pixel-btn-red" id="btn-back-menu" style="flex: 1;" data-i18n="back_menu">主選單</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 排行榜 Modal -->
+  <div id="leaderboard-modal" class="modal-backdrop hidden">
+    <div class="pixel-modal">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" data-i18n="leaderboard">雲端排行榜</h2>
+        <button class="pixel-btn pixel-btn-red" id="leaderboard-close-btn" style="padding: 2px 6px;">X</button>
+      </div>
+
+      <div class="lb-tabs">
+        <button class="pixel-btn lb-tab active" id="tab-single" data-i18n="single_rank">單人榜</button>
+        <button class="pixel-btn lb-tab" id="tab-coop" data-i18n="coop_rank">雙人榜</button>
+      </div>
+
+      <div id="leaderboard-list" class="lb-list"></div>
+    </div>
+  </div>
+
+  <!-- 外部函式庫與核心模組 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/supabase-service.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/mario.js"></script>
+  <script src="src/piece.js"></script>
+  <script src="src/score.js"></script>
+  <script src="src/board.js"></script>
+  <script src="src/renderer.js"></script>
+  <script src="src/controls.js"></script>
+  <script src="src/tetris.js"></script>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.I18N.init();
+      window.SupabaseService.init();
+      window.Leaderboard.init();
+      window.gameInstance = new window.SuperTrisGame();
+    });
+  </script>
+</body>
+</html>
