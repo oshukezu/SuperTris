@@ -1,9 +1,8 @@
-// SuperTris 遊戲核心主引擎 (Game Engine & State Controller)
+// SuperTris 遊戲核心主引擎 (含 800ms Lock Delay 碰地微調延遲)
 class SuperTrisGame {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
     this.nextCanvas = document.getElementById('next-canvas');
-
     this.cols = 10;
     this.rows = 20;
     this.cellSize = 28;
@@ -13,9 +12,8 @@ class SuperTrisGame {
     this.bag = new window.RandomBag();
     this.renderer = new window.Renderer(this.canvas, this.nextCanvas, this.cellSize);
 
-    this.mode = 'single'; // 'single' | 'coop'
+    this.mode = 'single';
     this.p1Piece = null;
-    this.p2Piece = null;
     this.nextPiece = null;
 
     this.isPaused = false;
@@ -23,6 +21,13 @@ class SuperTrisGame {
     this.dropCounter = 0;
     this.lastTime = 0;
     this.lastSyncTime = 0;
+
+    // 800ms 碰地鎖定延遲 (Lock Delay)
+    this.lockDelay = 800;
+    this.lockTimer = null;
+    this.lockResets = 0;
+    this.maxLockResets = 15;
+    this.isGrounded = false;
 
     this.controls = new window.Controls(this);
     this.initHUDButtons();
@@ -47,14 +52,10 @@ class SuperTrisGame {
 
   initVisibilityListener() {
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && !this.isPaused && !this.isGameOver) {
-        this.togglePause();
-      }
+      if (document.hidden && !this.isPaused && !this.isGameOver) this.togglePause();
     });
     window.addEventListener('blur', () => {
-      if (!this.isPaused && !this.isGameOver) {
-        this.togglePause();
-      }
+      if (!this.isPaused && !this.isGameOver) this.togglePause();
     });
   }
 
@@ -62,6 +63,7 @@ class SuperTrisGame {
     this.mode = mode;
     this.isGameOver = false;
     this.isPaused = false;
+    this.clearLockTimer();
     this.board.reset();
     this.scoreEngine.reset();
     this.bag = new window.RandomBag();
@@ -85,6 +87,7 @@ class SuperTrisGame {
 
   returnToTitle() {
     this.isPaused = true;
+    this.clearLockTimer();
     if (window.Multiplayer && window.Multiplayer.isConnected) {
       window.Multiplayer.leaveRoom();
     }
@@ -105,8 +108,9 @@ class SuperTrisGame {
   }
 
   spawnPiece(playerIndex = 1) {
+    this.clearLockTimer();
     let p = this.nextPiece || this.bag.next();
-    p.playerIndex = 1; // 雙人同控一塊
+    p.playerIndex = 1;
     p.x = 3;
 
     if (this.board.isCollision(p.getBlocks())) {
@@ -116,32 +120,74 @@ class SuperTrisGame {
 
     this.p1Piece = p;
     this.nextPiece = this.bag.next();
+    this.checkGrounded();
+  }
+
+  checkGrounded() {
+    if (!this.p1Piece) return false;
+    const isGround = this.board.isCollision(this.p1Piece.getBlocks(this.p1Piece.x, this.p1Piece.y + 1));
+    if (isGround && !this.isGrounded) {
+      this.isGrounded = true;
+      this.startLockTimer();
+    } else if (!isGround) {
+      this.isGrounded = false;
+      this.clearLockTimer();
+    }
+    return isGround;
+  }
+
+  startLockTimer() {
+    this.clearLockTimer();
+    this.lockTimer = setTimeout(() => {
+      if (this.p1Piece && this.isGrounded && !this.isPaused && !this.isGameOver) {
+        this.lockCurrentPiece(1);
+      }
+    }, this.lockDelay);
+  }
+
+  refreshLockTimer() {
+    if (this.isGrounded && this.lockResets < this.maxLockResets) {
+      this.lockResets++;
+      this.startLockTimer();
+      window.SoundEngine.playLockSlide();
+    }
+  }
+
+  clearLockTimer() {
+    if (this.lockTimer) {
+      clearTimeout(this.lockTimer);
+      this.lockTimer = null;
+    }
+    this.isGrounded = false;
+    this.lockResets = 0;
   }
 
   moveCurrentPiece(dx, dy, playerIndex = 1) {
     const piece = this.p1Piece;
-    if (!piece || this.isPaused || this.isGameOver) return;
+    if (!piece || this.isPaused || this.isGameOver) return false;
 
     const testBlocks = piece.getBlocks(piece.x + dx, piece.y + dy);
     if (!this.board.isCollision(testBlocks)) {
       piece.x += dx;
       piece.y += dy;
-      if (dx !== 0) window.SoundEngine.playMove();
+      if (dx !== 0) {
+        window.SoundEngine.playMove();
+        if (this.isGrounded) this.refreshLockTimer();
+      }
+      this.checkGrounded();
       return true;
-    } else if (dy > 0) {
-      this.lockCurrentPiece(1);
+    } else if (dy > 0 && !this.isGrounded) {
+      this.checkGrounded();
     }
     return false;
   }
 
   rotateCurrentPiece(dir = 1, playerIndex = 1) {
     const piece = this.p1Piece;
-    if (!piece || this.isPaused || this.isGameOver) return;
-    if (piece.type === 'Q') return;
+    if (!piece || this.isPaused || this.isGameOver || piece.type === 'Q') return;
 
     const newShape = piece.getRotatedMatrix(dir);
     const newRotation = (piece.rotation + (dir > 0 ? 1 : 3)) % 4;
-
     const kickTable = piece.type === 'I' ? window.WALL_KICK_DATA.I : window.WALL_KICK_DATA.NORMAL;
     const kicks = kickTable[piece.rotation] || [[0, 0]];
 
@@ -153,6 +199,8 @@ class SuperTrisGame {
         piece.x += kx;
         piece.y -= ky;
         window.SoundEngine.playRotate();
+        if (this.isGrounded) this.refreshLockTimer();
+        this.checkGrounded();
         return;
       }
     }
@@ -161,16 +209,15 @@ class SuperTrisGame {
   hardDrop(playerIndex = 1) {
     const piece = this.p1Piece;
     if (!piece || this.isPaused || this.isGameOver) return;
-
-    while (this.moveCurrentPiece(0, 1, 1)) {
-      // 墜落到底
-    }
+    while (this.moveCurrentPiece(0, 1, 1)) {}
+    this.lockCurrentPiece(1);
     window.SoundEngine.playDrop();
   }
 
   lockCurrentPiece(playerIndex = 1) {
     const piece = this.p1Piece;
     if (!piece) return;
+    this.clearLockTimer();
 
     const isStar = window.Mario && window.Mario.activeEffects.starMode;
     const hasBomb = window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0;
@@ -190,10 +237,7 @@ class SuperTrisGame {
     }
 
     this.board.lockPiece(piece);
-
-    if (window.Mario) {
-      window.Mario.mutateRandomCellToQuestion(this.board);
-    }
+    if (window.Mario) window.Mario.mutateRandomCellToQuestion(this.board);
 
     this.checkCascadeLineClears();
     this.spawnPiece(1);
@@ -202,30 +246,25 @@ class SuperTrisGame {
   checkCascadeLineClears() {
     const fullLines = this.board.findFullLines();
     if (fullLines.length > 0) {
-      const questionBlockCount = this.board.removeLines(fullLines);
+      const qCount = this.board.removeLines(fullLines);
       this.scoreEngine.addClearedLines(fullLines.length);
       window.SoundEngine.playLineClear(fullLines.length);
 
-      if (questionBlockCount > 0 && window.Mario) {
-        for (let i = 0; i < questionBlockCount; i++) {
-          const item = window.Mario.rollItem();
-          window.Mario.triggerItem(item, this);
+      if (qCount > 0 && window.Mario) {
+        for (let i = 0; i < qCount; i++) {
+          window.Mario.triggerItem(window.Mario.rollItem(), this);
         }
       }
-
-      if (fullLines.length === 4) {
-        this.triggerTetrisSpecialEffect();
-      }
+      if (fullLines.length === 4) this.triggerTetrisSpecialEffect();
     } else {
       this.scoreEngine.addClearedLines(0);
     }
   }
 
   handleLifeLost() {
+    this.clearLockTimer();
     window.SoundEngine.playLifeLost();
-    const isOver = this.scoreEngine.loseLife();
-
-    if (isOver) {
+    if (this.scoreEngine.loseLife()) {
       this.triggerGameOver();
     } else {
       this.board.clearHalfBoard();
@@ -247,6 +286,7 @@ class SuperTrisGame {
 
   async triggerGameOver() {
     this.isGameOver = true;
+    this.clearLockTimer();
     window.SoundEngine.playGameOver();
 
     const isNewHigh = window.Storage.recordGame(
@@ -255,7 +295,6 @@ class SuperTrisGame {
       this.scoreEngine.maxCombo,
       this.mode
     );
-
     const pct = await window.SupabaseService.calculatePercentile(this.scoreEngine.score, this.mode);
 
     document.getElementById('go-score').textContent = this.scoreEngine.score.toLocaleString();
@@ -293,9 +332,7 @@ class SuperTrisGame {
     });
 
     if (btn) btn.textContent = window.I18N.t('submitted');
-    setTimeout(() => {
-      window.Leaderboard.show();
-    }, 400);
+    setTimeout(() => window.Leaderboard.show(), 400);
   }
 
   gameLoop(time = 0) {
@@ -305,16 +342,13 @@ class SuperTrisGame {
     this.lastTime = time;
 
     this.dropCounter += dt;
-    const dropInterval = this.scoreEngine.getDropInterval();
-
-    if (this.dropCounter > dropInterval) {
+    if (this.dropCounter > this.scoreEngine.getDropInterval()) {
       this.moveCurrentPiece(0, 1, 1);
       this.dropCounter = 0;
     }
 
     if (window.Mario) window.Mario.tickTimers(dt / 1000);
 
-    // 房主定期廣播盤面權威狀態 (每 150ms)
     if (time - this.lastSyncTime > 150) {
       if (window.Multiplayer && window.Multiplayer.role === 'host') {
         window.Multiplayer.broadcastState({

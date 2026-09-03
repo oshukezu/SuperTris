@@ -2,23 +2,23 @@
 
 ---
 
-### [2026-09-03] 手機純手勢操控、四層防跑版防縮放與跨機雙人連線全面重構
-- **手機端純手勢操作重構**：
-  - 徹底移除舊有的 SVG D-Pad 虛擬按鍵，釋放全螢幕觸控面積。
-  - 水平滑動（Swipe Left/Right）：靈敏平移方塊（每位移 22px 觸發一格位移）。
-  - 垂直向下滑動（Swipe Down）：進入軟落加速，手指持續按住時維持週期性軟落。
-  - 單擊螢幕任意處（Tap）：觸發順時針旋轉。
-  - 完全移除手機端 Hard Drop，徹底消除手勢滑移時誤判觸發落地暴斃的風險。
-- **四層立體防跑版與嚴禁縮放防護**：
-  - Viewport 嚴格配置 `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no`。
-  - 全域 CSS 注入 `touch-action: none !important; user-select: none !important; -webkit-touch-callout: none !important;`。
-  - 容器固定鎖定 `height: 100dvh; max-height: 100dvh; overflow: hidden;`，禁止滾動條彈跳。
-  - JS 攔截 `gesturestart/change/end` 多指縮放，以及攔截 300ms 內的連續快速 `touchend`，徹底杜絕 iOS Safari 雙擊放大與畫面晃動。
-- **Supabase Realtime 跨裝置雙人配對與分工合作**：
-  - 新增專屬模組 `js/multiplayer.js`（239 行），採用 Supabase Realtime 廣播頻道。
-  - 統一電腦與行動端的雙人遊玩體驗：
-    - **P1 房主（舵手）**：建立房間產生 4 碼邀請碼，負責方塊**水平左右移動**（滑動 / 方向鍵）。
-    - **P2 訪客（引擎）**：輸入 4 碼邀請碼加入，負責方塊**旋轉與加速**（點擊螢幕 / 下滑加速）。
-  - 兩人共控同一塊方塊，房主每 150ms 權威廣播棋盤狀態與分數，實現極低延遲的默契連線合作。
-- **檔案規範檢查**：
-  - 全專案單檔行數維持在 88~337 行，完全符合 400 行上限。
+### [2026-09-03] 終極優化：全 Emoji 替換、800ms Lock Delay、連續直落與版面防橫移跑版
+- **全面移除 Emoji，改用純 CSS 16x16 點陣圖標與 8-Bit 標籤**：
+  - 徹底清除全站所有 Emoji（金幣、蘑菇、星星、火焰花、獎牌、喇叭等）。
+  - 在 `style.css` 透過純 CSS 像素陰影與裁切實作 `.icon-coin`、`.icon-mushroom`、`.icon-star`、`.icon-fire` 16x16 點陣圖標，零外部圖片依賴，原汁原味呈現紅白機 8-bit 風格。
+  - 按鈕與文字全數改為 NES 經典大寫文字（`[SOUND]`, `[PAUSE]`, `[RESTART]`, `[RANK]`, `NO.1`, `[1UP]` 等）。
+- **HUD 道具動態倒數收縮進度條**：
+  - `js/mario.js` 實作動態像素進度條與大字倒數秒數（`SCORE x2 (28s)`、`SUPER STAR (12s)`），秒數小於等於 5 秒時進入紅色警示閃爍。
+- **手機觸控連續極速直落 (Continuous Fast Drop)**：
+  - `src/controls.js`：向下滑動短按為單格軟落；持續按住時以每 60ms 快速下墜一格的頻率進入極速連續直落，手指放開立即停止。
+- **800ms 碰地微調延遲 (Lock Delay)**：
+  - `src/tetris.js`：當方塊碰觸底部或積木表面時啟動 800ms 緩衝計時器；期間每次左右平移或旋轉微調皆重新刷新 800ms（上限 15 次）。
+  - 碰地橫移微調時伴隨輕脆的 30ms 短音（`SoundEngine.playLockSlide()`）。
+- **移除左側按鈕、頂部導航列整合**：
+  - 棋盤左側完全清空，棋盤居中極大化。
+  - 頂部導航列完整整併：`[EN/中] [SOUND] [PAUSE] [RESET] [RANK]`。
+- **根治手機下拉誤觸與第三方瀏覽器左右橫移跑版**：
+  - 全域設定 `position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; overflow: hidden !important; overscroll-behavior: none !important;`。
+  - 全域 `touchmove` 被動監聽關閉並呼叫 `e.preventDefault()`，徹底阻斷原生下拉刷新與 WebView 橫向拉扯位移。
+- **行數規範嚴格審查**：
+  - 全專案單檔行數維持在 87~371 行，完全符合 400 行限制。

@@ -4,8 +4,8 @@
 
 ```
 SuperTris/
-├── index.html              # 主頁面入口（含 Title Screen、Canvas、手勢感應層、房間配對彈窗、Modal UI）
-├── style.css               # 全域 8-bit Pixel 樣式、四層防縮放與 100dvh 固定版面
+├── index.html              # 主頁面入口（無 Emoji、頂部整合按鈕、全螢幕手勢層、房間配對彈窗）
+├── style.css               # 全域 8-bit Pixel 樣式、純CSS 16x16 點陣圖標、終極防橫移鎖死
 ├── README.md               # 中英雙語專案說明文件（GitHub 發布用）
 ├── LICENSE                 # MIT 開源授權
 ├── DEVLOG.md               # 開發工作日誌（即時記錄每次更動）
@@ -15,18 +15,18 @@ SuperTris/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置
 ├── src/                    # 遊戲核心引擎模組 (上限 400 行/檔)
-│   ├── tetris.js           # 遊戲主循環、狀態控制、連線分工合作整合 (337行)
+│   ├── tetris.js           # 主循環、800ms Lock Delay 碰地微調緩衝、狀態控制 (371行)
 │   ├── renderer.js         # 畫面繪製、像素磚塊紋理渲染、Ghost與Next預覽 (109行)
 │   ├── board.js            # 棋盤 Matrix、消行判定、垂直重力塌陷演算法 (172行)
 │   ├── piece.js            # Tetromino 定義、1x1問號磚支援、SRS Wall Kick (157行)
 │   ├── score.js            # 計分、Combo、溫和速度曲線、99命數上限 (138行)
-│   └── controls.js         # 鍵盤監聽、手機純手勢引擎與四層防縮放攔截 (174行)
+│   └── controls.js         # 鍵盤監聽、純手勢引擎、60ms 連續高速直落 (168行)
 ├── js/                     # 周邊功能模組 (上限 400 行/檔)
-│   ├── multiplayer.js      # [新增] Supabase Realtime 4碼配對、動作廣播與同步 (239行)
-│   ├── mario.js            # 瑪利歐道具疊加規則、場地轉問號磚、Buff管理 (191行)
-│   ├── audio.js            # Web Audio API 8-bit 程式合成音效與 BGM (179行)
-│   ├── i18n.js             # 繁體中文 (zh-TW) 與英文 (en) 多語系字典與切換 (170行)
-│   ├── leaderboard.js      # 排行榜 Modal 渲染、勝率百分比計算、分頁切換 (88行)
+│   ├── multiplayer.js      # Supabase Realtime 4碼配對、動作廣播與同步 (239行)
+│   ├── mario.js            # 瑪利歐道具疊加、動態倒數收縮進度條 (228行)
+│   ├── audio.js            # Web Audio API 8-bit 合成、30ms 碰地微調音效 (162行)
+│   ├── i18n.js             # 繁中/英雙語字典（純 8-bit NES 標籤無 Emoji） (168行)
+│   ├── leaderboard.js      # 排行榜 Modal 渲染、NO.1/2/3 標籤、分頁切換 (87行)
 │   ├── supabase-service.js # Supabase REST API / JS SDK 整合與分數上傳 (106行)
 │   ├── storage.js          # 本地 localStorage 離線資料管理 (90行)
 │   ├── config.example.js   # Supabase 設定檔範本（開源公開） (9行)

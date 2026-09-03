@@ -3,23 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
-  <title>SuperTris — 俄羅斯方塊 × 超級瑪利歐</title>
+  <title>SUPERTRIS</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <!-- 橫向鎖定警告 (禁止橫向操作) -->
   <div id="landscape-warning">
-    <p data-i18n="portrait_warning">⚠️ 請轉為直向模式遊玩（禁止橫向操作）</p>
+    <p data-i18n="portrait_warning">[NOTICE] 請轉為直向模式遊玩（禁止橫向操作）</p>
   </div>
 
-  <!-- 頂部導航列 -->
+  <!-- 頂部導航列 (大整併：無 Emoji，整合語言/聲音/暫停/重開/排行) -->
   <header class="top-nav">
-    <div class="nav-brand">★ SUPERTRIS ★</div>
+    <div class="nav-brand">SUPERTRIS</div>
     <div class="nav-buttons">
       <button class="pixel-btn" id="lang-toggle-btn">EN</button>
-      <button class="pixel-btn" id="mute-toggle-btn">🔊</button>
-      <button class="pixel-btn pixel-btn-accent" id="leaderboard-btn" data-i18n="leaderboard">排行榜</button>
+      <button class="pixel-btn" id="mute-toggle-btn">SOUND</button>
+      <button class="pixel-btn" id="pause-btn" data-i18n="pause">PAUSE</button>
+      <button class="pixel-btn pixel-btn-red" id="restart-btn" data-i18n="restart">RESET</button>
+      <button class="pixel-btn pixel-btn-accent" id="leaderboard-btn" data-i18n="leaderboard">RANK</button>
     </div>
   </header>
 
@@ -33,67 +35,59 @@
     </div>
 
     <div class="title-footer">
-      <p data-i18n="controls_kb_p1">電腦 (P1): WASD/方向鍵, Space 快速落地, P 暫停</p>
-      <p data-i18n="controls_kb_p2" style="margin-top:4px;">手機: 左右滑動移動，下滑加速軟落，單擊螢幕旋轉</p>
+      <p data-i18n="controls_kb_p1">電腦: WASD/方向鍵移動，Space 快速落地，P 暫停</p>
+      <p data-i18n="controls_kb_p2" style="margin-top:4px;">手機: 左右滑動移動，下滑持續加速，單擊旋轉</p>
     </div>
   </section>
 
   <!-- 遊戲主畫面 (HUD + Canvas + 全螢幕手勢層) -->
   <main id="hud" class="hidden" style="width: 100%; max-width: 480px;">
-    <!-- 道具 Buff 狀態列 -->
-    <div id="active-powerups" class="active-buffs" style="min-height: 20px; margin-bottom: 6px;"></div>
+    <!-- 道具 Buff 狀態列與像素進度條 -->
+    <div id="active-powerups" class="active-buffs" style="min-height: 18px;"></div>
 
-    <!-- 遊戲佈局：中間 Canvas + 右側 大型資訊方框 -->
+    <!-- 遊戲佈局：中間 Canvas 完全置中 + 右側 緊湊大型數據方框 (左側按鈕已清空) -->
     <div class="game-layout" id="touch-gesture-area">
-      <!-- 左側 操作控制按鈕區 -->
-      <aside class="side-panel">
-        <button class="pixel-btn" id="pause-btn" data-i18n="pause" style="padding: 10px 6px;">暫停</button>
-        <button class="pixel-btn pixel-btn-red" id="restart-btn" data-i18n="restart" style="padding: 10px 6px;">重開</button>
-      </aside>
-
       <!-- 中間 主棋盤畫布 -->
       <div class="canvas-container">
         <canvas id="game-canvas" width="280" height="560"></canvas>
-        <!-- 道具獲得提示 Toast -->
         <div id="item-toast" class="item-toast hidden"></div>
-        <!-- Tetris 4行全螢幕特效 -->
         <div id="tetris-firework-fx" class="tetris-fx hidden"></div>
-        <!-- 暫停遮罩 -->
         <div id="pause-overlay" class="modal-backdrop hidden" style="position: absolute; cursor: pointer;">
-          <h2 style="color: var(--accent-gold);" data-i18n="pause">PAUSED (點擊繼續)</h2>
+          <h2 style="color: var(--accent-gold);" data-i18n="pause">PAUSED (TAP TO RESUME)</h2>
         </div>
       </div>
 
       <!-- 右側 大型整潔資訊方框 (Next + 數值) -->
       <aside class="side-panel">
         <div class="panel-box main-info-box">
-          <span class="panel-title" data-i18n="next">下一塊</span>
+          <span class="panel-title" data-i18n="next">NEXT</span>
           <canvas id="next-canvas" width="60" height="60"></canvas>
 
           <div class="info-divider"></div>
 
           <div class="stat-item">
-            <span class="stat-label" data-i18n="score">分數</span>
+            <span class="stat-label" data-i18n="score">SCORE</span>
             <span class="stat-val" id="hud-score">0</span>
           </div>
 
           <div class="stat-item">
-            <span class="stat-label" data-i18n="level">等級</span>
+            <span class="stat-label" data-i18n="level">LVL</span>
             <span class="stat-val" id="hud-level">1</span>
           </div>
 
           <div class="stat-item">
-            <span class="stat-label" data-i18n="lines">消行</span>
+            <span class="stat-label" data-i18n="lines">LINES</span>
             <span class="stat-val" id="hud-lines">0</span>
           </div>
 
           <div class="stat-item">
-            <span class="stat-label">🪙</span>
+            <span class="stat-label"><span class="pixel-icon icon-coin"></span>COIN</span>
             <span class="stat-val"><strong id="hud-coins">0</strong>/100</span>
           </div>
 
           <div class="stat-item">
-            <span class="stat-val" id="hud-lives" style="color: #2ecc71;">🍄 × 3</span>
+            <span class="stat-label"><span class="pixel-icon icon-mushroom"></span>LIFE</span>
+            <span class="stat-val" id="hud-lives" style="color: #2ecc71;">3</span>
           </div>
 
           <div id="hud-combo" class="stat-combo hidden"></div>
@@ -132,7 +126,7 @@
   <div id="game-over-modal" class="modal-backdrop hidden">
     <div class="pixel-modal">
       <h2 class="modal-title" data-i18n="game_over">GAME OVER</h2>
-      <div id="go-new-record" class="hidden" style="color: #f1c40f;" data-i18n="new_record">🎉 破紀錄！歷史新高！</div>
+      <div id="go-new-record" class="hidden" style="color: #f1c40f;" data-i18n="new_record">[NEW RECORD] 歷史新高！</div>
 
       <div class="stats-grid">
         <div><span data-i18n="score">分數</span>: <strong id="go-score">0</strong></div>
@@ -157,7 +151,7 @@
   <div id="leaderboard-modal" class="modal-backdrop hidden">
     <div class="pixel-modal">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 class="modal-title" data-i18n="leaderboard">雲端排行榜</h2>
+        <h2 class="modal-title" data-i18n="leaderboard">排行榜</h2>
         <button class="pixel-btn pixel-btn-red" id="leaderboard-close-btn" style="padding: 2px 6px;">X</button>
       </div>
 

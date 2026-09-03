@@ -1,9 +1,8 @@
-// SuperTris 排行榜 UI 模組 (Leaderboard Modal)
+// SuperTris 排行榜 UI 模組 (Leaderboard Modal) - 無 Emoji
 const Leaderboard = {
   currentTab: 'single',
 
   init() {
-    const modal = document.getElementById('leaderboard-modal');
     const openBtn = document.getElementById('leaderboard-btn');
     const closeBtn = document.getElementById('leaderboard-close-btn');
     const tabSingle = document.getElementById('tab-single');
@@ -61,10 +60,10 @@ const Leaderboard = {
     data.forEach((item, index) => {
       const isMe = currentName && item.nickname.toLowerCase() === currentName.toLowerCase();
       const rank = index + 1;
-      let badge = `${rank}`;
-      if (rank === 1) badge = '🥇 1';
-      else if (rank === 2) badge = '🥈 2';
-      else if (rank === 3) badge = '🥉 3';
+      let badge = `NO.${rank}`;
+      if (rank === 1) badge = '[1ST]';
+      else if (rank === 2) badge = '[2ND]';
+      else if (rank === 3) badge = '[3RD]';
 
       html += `
         <div class="lb-row ${isMe ? 'lb-me' : ''}">
