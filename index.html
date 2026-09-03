@@ -161,17 +161,17 @@
       <!-- 上半部：產生代碼 (P1 房主) -->
       <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
         <div style="font-size: 13px; color: var(--accent-gold); font-weight: bold;" data-i18n="share_code_title">產生代碼</div>
-        <div id="display-room-code" style="font-size: 32px; letter-spacing: 4px; color: #fff; background: #000; padding: 6px 18px; border: 2px solid var(--accent-gold);">----</div>
+        <div id="display-room-code" style="font-size: 42px; font-weight: bold; letter-spacing: 6px; color: #ffffff; background: #000; padding: 6px 18px; border: 2px solid var(--accent-gold);">8888</div>
         <div style="font-size: 11px; color: #aaa;" class="pixel-pulse" data-i18n="waiting_partner">等待隊友加入中...</div>
       </div>
 
       <!-- 分隔字 -->
       <div style="font-size: 12px; color: #888;" data-i18n="or_divider">或</div>
 
-      <!-- 下半部：輸入代碼 (P2 隊友) -->
+      <!-- 下半部：輸入代碼 (P2 隊友) - 支援電話純數字鍵盤 -->
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <div style="font-size: 13px; color: var(--accent-gold); font-weight: bold;" data-i18n="enter_code_title">輸入代碼</div>
-        <input type="text" id="join-code-input" class="pixel-input" maxlength="4" placeholder="請輸入代碼" data-i18n-placeholder="enter_code_title" />
+        <input type="tel" inputmode="numeric" pattern="[0-9]*" id="join-code-input" class="pixel-input" maxlength="4" placeholder="請輸入代碼" data-i18n-placeholder="enter_code_title" />
         <button class="pixel-btn pixel-btn-accent room-action-btn" id="btn-join-room" data-i18n="join_room_btn">加入房間</button>
       </div>
 

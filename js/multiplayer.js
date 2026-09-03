@@ -1,4 +1,4 @@
-// SuperTris 多人連線模組 (打開即開房、產生/輸入代碼、P1權威即時同步)
+// SuperTris 多人連線模組 (即時生成42px代碼、電話數字鍵盤、防自我死鎖)
 class MultiplayerManager {
   constructor() {
     this.game = null;
@@ -30,12 +30,11 @@ class MultiplayerManager {
       this.leaveRoom();
     });
 
-    btnJoin?.addEventListener('click', () => {
-      const code = inputCode ? inputCode.value.trim() : '';
-      if (code.length === 4) {
-        this.joinTargetRoom(code);
-      } else {
-        this.showError(window.I18N.t('invalid_room_code'));
+    btnJoin?.addEventListener('click', () => this.handleJoinSubmit());
+    inputCode?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.handleJoinSubmit();
       }
     });
   }
@@ -49,19 +48,38 @@ class MultiplayerManager {
     return String(Math.floor(1000 + Math.random() * 9000));
   }
 
-  // 打開彈窗即刻自動開房 (P1 Host)
-  async openDirectHosting() {
+  // 打開彈窗第 1 毫秒無條件即刻生成 4 位純白代碼 (P1 Host)
+  openDirectHosting() {
     this.showError('');
-    if (!window.SupabaseService.isConfigured()) {
-      this.showError(window.I18N.t('connection_failed'));
-      return;
-    }
-
     this.role = 'host';
     this.roomCode = this.generateRoomCode();
     const codeEl = document.getElementById('display-room-code');
     if (codeEl) codeEl.textContent = this.roomCode;
+
+    if (!window.SupabaseService.isConfigured()) {
+      this.showError(window.I18N.t('connection_failed'));
+      return;
+    }
     this.subscribeChannel(this.roomCode);
+  }
+
+  // 處理點擊或 Enter 加入 (P2 Guest)
+  handleJoinSubmit() {
+    const inputCode = document.getElementById('join-code-input');
+    const code = inputCode ? inputCode.value.trim().replace(/\D/g, '') : '';
+
+    if (code.length !== 4) {
+      this.showError(window.I18N.t('invalid_room_code'));
+      return;
+    }
+
+    // 防呆：禁止自己連自己畫面產生的代碼
+    if (code === this.roomCode) {
+      this.showError(window.I18N.t('invalid_self_code'));
+      return;
+    }
+
+    this.joinTargetRoom(code);
   }
 
   // 切換為加入指定房間 (P2 Guest)

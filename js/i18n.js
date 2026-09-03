@@ -58,7 +58,8 @@ const I18N = {
       role_badge_p1: 'P1 負責移動 ↔',
       role_badge_p2: 'P2 負責轉向🔄/加速⬇',
       coop_partner_left: '隊友已中途斷線或離開房間',
-      invalid_room_code: '請輸入正確的 4 碼數字房間代號',
+      invalid_room_code: '請輸入正確的代碼',
+      invalid_self_code: '請輸入朋友的代碼，非自己的代碼',
       connection_failed: '連線伺服器失敗，請確認網路或 Supabase 設定',
       connecting: '連線中...'
     },
@@ -118,7 +119,8 @@ const I18N = {
       role_badge_p1: 'P1 Steerer ↔',
       role_badge_p2: 'P2 Engine 🔄/⬇',
       coop_partner_left: 'Partner disconnected or left the room',
-      invalid_room_code: 'Please enter a valid 4-digit code',
+      invalid_room_code: 'Please enter a valid code',
+      invalid_self_code: 'Enter friend code, not your own code',
       connection_failed: 'Connection failed, check Supabase config',
       connecting: 'Connecting...'
     }
