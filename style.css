@@ -86,8 +86,9 @@ body.in-title .active-buffs {
 .nes-top-hud-row {
   width: 100%;
   max-width: 440px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  justify-items: center;
   align-items: center;
   color: #fff;
   text-shadow: 2px 2px 0 #000;
@@ -107,27 +108,26 @@ body.in-title .active-buffs {
   font-weight: bold;
 }
 
-/* 第二行：輔助資訊橫排 (NEXT | LINES | LIFE | 職責標籤 | [SET]) */
+/* 第二行：輔助資訊 4 欄等寬橫排 (與第一行 100% 垂直對齊) */
 .sub-hud-row {
   width: 100%;
   max-width: 440px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  justify-items: center;
   align-items: center;
   background: var(--panel-bg);
   border: 2px solid #000;
-  padding: 3px 6px;
+  padding: 4px 0;
   margin-top: 4px;
 }
-.sub-hud-left {
+.sub-hud-col {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-}
-.sub-hud-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
 }
 .sub-lbl {
   font-size: 10px;
@@ -141,6 +141,11 @@ body.in-title .active-buffs {
   background: #0f0f1b;
   border: 1px solid #000;
   display: block;
+}
+.set-nav-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 /* 雙人職責高對比標籤 */

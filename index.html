@@ -27,28 +27,25 @@
       <div class="hud-col"><span class="hud-sub">TIME</span><span id="hud-time" class="hud-main">--:--</span></div>
     </div>
 
-    <!-- 第二行：輔助資訊橫排 (首頁時自動隱藏，進遊戲時展開) -->
+    <!-- 第二行：輔助資訊 4 欄等寬橫排 (與第一行 100% 垂直對齊，首頁時隱藏) -->
     <div class="sub-hud-row">
-      <div class="sub-hud-left">
-        <div class="sub-hud-item">
-          <span class="sub-lbl" data-i18n="next">NEXT</span>
-          <canvas id="next-canvas" width="32" height="32"></canvas>
-        </div>
-        <div class="sub-hud-item">
-          <span class="sub-lbl" data-i18n="lines">LINES</span>
-          <span id="hud-lines" class="sub-val">0</span>
-        </div>
-        <div class="sub-hud-item">
-          <span class="sub-lbl">🍄 LIFE</span>
-          <span id="hud-lives" class="sub-val" style="color: #2ecc71;">3</span>
-        </div>
+      <div class="sub-hud-col">
+        <span class="sub-lbl" data-i18n="next">NEXT</span>
+        <canvas id="next-canvas" width="28" height="28"></canvas>
       </div>
-
-      <!-- 雙人模式專屬醒目職責標籤 -->
-      <div id="header-role-badge" class="header-role-badge hidden">P1 負責移動 ↔</div>
-
-      <!-- 右側 [SET] 齒輪抽屜按鈕 -->
-      <button class="pixel-btn pixel-btn-accent" id="set-menu-btn">[SET]</button>
+      <div class="sub-hud-col">
+        <span class="sub-lbl">🍄 LIFE</span>
+        <span id="hud-lives" class="sub-val" style="color: #2ecc71;">3</span>
+      </div>
+      <div class="sub-hud-col">
+        <span class="sub-lbl" data-i18n="lines">LINES</span>
+        <span id="hud-lines" class="sub-val">0</span>
+      </div>
+      <div class="sub-hud-col">
+        <!-- 雙人模式時切換為職責標籤，單人模式時為純文字 SET 按鈕 -->
+        <button class="pixel-btn pixel-btn-accent set-nav-btn" id="set-menu-btn">SET</button>
+        <div id="header-role-badge" class="header-role-badge hidden">P1 ↔</div>
+      </div>
     </div>
 
     <!-- [SET] 下拉收折抽屜選單 -->
