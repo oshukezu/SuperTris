@@ -295,12 +295,17 @@ class SuperTrisGame {
       let mult = cascade === 2 ? 1.5 : (cascade === 3 ? 2.0 : (cascade >= 4 ? 3.0 : 1));
       this.scoreEngine.addClearedLines(full.length, mult);
       window.SoundEngine.playLineClear(full.length);
-      full.forEach(r => { this.renderer.addCoinAnimation(4, r); this.renderer.addCoinAnimation(5, r); });
       if (questionCount > 0 && window.Mario) {
         qPositions.forEach(pos => {
           const item = window.Mario.rollItem();
-          this.renderer.addItemRiseAnimation(pos.x, pos.y, item);
-          setTimeout(() => { if (!this.isGameOver) window.Mario.triggerItem(item, this); }, 500);
+          if (item === 'coin') {
+            this.renderer.addCoinAnimation(pos.x, pos.y);
+            window.SoundEngine.playCoin();
+            this.scoreEngine.addGems(1);
+          } else {
+            this.renderer.addItemRiseAnimation(pos.x, pos.y, item);
+            setTimeout(() => { if (!this.isGameOver) window.Mario.triggerItem(item, this); }, 500);
+          }
         });
       }
       if (full.length === 4) {
