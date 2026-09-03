@@ -1,4 +1,4 @@
-// SuperTris 畫面渲染模組 (Renderer Module) - 已移除 Hold 預覽
+// SuperTris 畫面渲染模組 (Renderer Module) - 適配頂部單行 HUD 迷你方塊
 class Renderer {
   constructor(canvas, nextCanvas, cellSize = 28) {
     this.canvas = canvas;
@@ -50,6 +50,7 @@ class Renderer {
     ctx.setLineDash([]);
   }
 
+  // 渲染頂部單行 HUD 的 10~12px 迷你預覽方塊
   renderSidePreview(ctx, piece, theme) {
     if (!ctx) return;
     ctx.fillStyle = '#0f0f1b';
@@ -57,13 +58,13 @@ class Renderer {
 
     if (!piece) return;
     const blocks = piece.getBlocks(0, 0);
-    const miniSize = 18;
+    const miniSize = 10;
     const offsetX = (ctx.canvas.width - piece.shape[0].length * miniSize) / 2;
     const offsetY = (ctx.canvas.height - piece.shape.length * miniSize) / 2;
 
     blocks.forEach(b => {
       ctx.fillStyle = piece.isQuestion ? theme.question : theme.main;
-      ctx.fillRect(offsetX + b.x * miniSize, offsetY + b.y * miniSize, miniSize - 2, miniSize - 2);
+      ctx.fillRect(offsetX + b.x * miniSize, offsetY + b.y * miniSize, miniSize - 1, miniSize - 1);
     });
   }
 

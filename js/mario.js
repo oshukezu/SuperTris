@@ -1,11 +1,11 @@
-// SuperTris 瑪利歐道具系統與動態像素進度條 (No Emoji)
+// SuperTris 瑪利歐道具系統與動態像素進度條 (回歸生動 Emoji)
 const Mario = {
   ITEM_PROBABILITIES: [
-    { type: 'coin', label: '[COIN] (+1)', weight: 60 },
-    { type: 'red_mushroom', label: '[MUSHROOM] (Score ×2)', weight: 18 },
-    { type: 'fire_flower', label: '[FIRE] (Bomb ×5)', weight: 14 },
-    { type: 'green_mushroom', label: '[1UP] (Life +1)', weight: 5 },
-    { type: 'super_star', label: '[STAR] (Laser Clear)', weight: 3 }
+    { type: 'coin', label: '🪙 COIN (+1)', weight: 60 },
+    { type: 'red_mushroom', label: '🍄 MUSHROOM (Score ×2)', weight: 18 },
+    { type: 'fire_flower', label: '🌸 FIRE (Bomb ×5)', weight: 14 },
+    { type: 'green_mushroom', label: '🍄 1UP (Life +1)', weight: 5 },
+    { type: 'super_star', label: '⭐ STAR (Laser Clear)', weight: 3 }
   ],
 
   activeEffects: {
@@ -64,7 +64,7 @@ const Mario = {
       case 'coin':
         gameContext.scoreEngine.addCoins(1);
         window.SoundEngine.playCoin();
-        this.showToast('[COIN] +1');
+        this.showToast('🪙 +1 COIN');
         break;
 
       case 'red_mushroom':
@@ -176,46 +176,39 @@ const Mario = {
     }, 1800);
   },
 
-  // 實作 HUD 像素動態倒數收縮進度條
   updateHUD() {
     const bar = document.getElementById('active-powerups');
     if (!bar) return;
 
     let html = '';
 
-    // 紅蘑菇進度條
     if (this.activeEffects.scoreMultiplier > 1 && this.activeEffects.multiplierTimer > 0) {
       const remain = Math.ceil(this.activeEffects.multiplierTimer);
       const pct = Math.min(100, Math.max(0, (this.activeEffects.multiplierTimer / (this.activeEffects.multiplierTotal || 30)) * 100));
       const danger = remain <= 5 ? 'danger' : '';
       html += `
         <div class="buff-bar-container">
-          <span class="pixel-icon icon-mushroom"></span>
-          <span>SCORE x2 (${remain}s)</span>
+          <span>🍄 2x (${remain}s)</span>
           <div class="buff-track"><div class="buff-fill ${danger}" style="width: ${pct}%"></div></div>
         </div>
       `;
     }
 
-    // 火焰花炸彈剩餘次數
     if (this.activeEffects.fireBombsRemaining > 0) {
       html += `
         <div class="buff-bar-container">
-          <span class="pixel-icon icon-fire"></span>
-          <span>FIRE BOMB x${this.activeEffects.fireBombsRemaining}</span>
+          <span>🌸 BOMB x${this.activeEffects.fireBombsRemaining}</span>
         </div>
       `;
     }
 
-    // 無敵星進度條
     if (this.activeEffects.starMode && this.activeEffects.starTimer > 0) {
       const remain = Math.ceil(this.activeEffects.starTimer);
       const pct = Math.min(100, Math.max(0, (this.activeEffects.starTimer / (this.activeEffects.starTotal || 15)) * 100));
       const danger = remain <= 4 ? 'danger' : '';
       html += `
         <div class="buff-bar-container">
-          <span class="pixel-icon icon-star"></span>
-          <span>SUPER STAR (${remain}s)</span>
+          <span>⭐ STAR (${remain}s)</span>
           <div class="buff-track"><div class="buff-fill ${danger}" style="width: ${pct}%"></div></div>
         </div>
       `;

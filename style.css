@@ -1,4 +1,4 @@
-/* SuperTris 8-Bit Retro Pixel Theme (No Emojis, Pure Pixel Art) */
+/* SuperTris 8-Bit Retro Pixel Theme */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
@@ -13,7 +13,6 @@
   --pixel-font: 'Press Start 2P', monospace, sans-serif;
 }
 
-/* 終極視窗鎖死：防下拉刷新、防第三方瀏覽器左右橫移跑版 */
 html, body {
   position: fixed !important;
   inset: 0 !important;
@@ -55,46 +54,7 @@ body {
   padding-top: max(8px, env(safe-area-inset-top));
 }
 
-/* 純 CSS 像素點陣圖標 (Pixel Art Sprites - 16x16 點陣無圖檔) */
-.pixel-icon {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  position: relative;
-  vertical-align: middle;
-  margin-right: 4px;
-}
-
-/* 像素金幣 (Coin) */
-.icon-coin {
-  background: var(--accent-gold);
-  border: 1px solid #000;
-  border-radius: 2px;
-  box-shadow: 1px 1px 0 #fff inset, -1px -1px 0 #b87310 inset;
-}
-
-/* 像素蘑菇 (Mushroom) */
-.icon-mushroom {
-  background: var(--accent-red);
-  border: 1px solid #000;
-  border-radius: 3px 3px 1px 1px;
-  box-shadow: 0 4px 0 -1px #fff inset, 0 6px 0 -1px #fff;
-}
-
-/* 像素星星 (Star) */
-.icon-star {
-  background: #f1c40f;
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-}
-
-/* 像素火焰 (Fire) */
-.icon-fire {
-  background: #e67e22;
-  border-radius: 50% 50% 20% 20%;
-  box-shadow: 0 0 3px #f39c12;
-}
-
-/* 頂部導航列 (大整併：語言、聲音、暫停、重開、排行) */
+/* 頂部精簡導航列 (左側 Logo，右側 [SET]) */
 .top-nav {
   width: 100%;
   max-width: 480px;
@@ -102,18 +62,36 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
-  font-size: 10px;
+  font-size: 11px;
+  position: relative;
 }
 
 .nav-brand {
   color: var(--accent-gold);
   text-shadow: 2px 2px #000;
-  font-size: 10px;
+  font-size: 11px;
 }
 
-.nav-buttons {
+/* [SET] 下拉收折抽屜面板 */
+.set-drawer {
+  position: absolute;
+  top: 36px;
+  right: 6px;
+  background: var(--panel-bg);
+  border: 3px solid #000;
+  padding: 8px;
   display: flex;
-  gap: 4px;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 90;
+  box-shadow: 4px 4px 0 #000;
+  width: 150px;
+}
+.drawer-btn {
+  width: 100%;
+  padding: 8px 4px;
+  font-size: 9px;
+  text-align: center;
 }
 
 .pixel-btn {
@@ -121,7 +99,7 @@ body {
   color: #fff;
   border: 2px solid #000;
   box-shadow: 2px 2px 0 #000;
-  padding: 5px 8px;
+  padding: 6px 10px;
   font-family: var(--pixel-font);
   font-size: 9px;
   cursor: pointer;
@@ -181,14 +159,54 @@ body {
   line-height: 1.6;
 }
 
-/* 遊戲主佈局 (棋盤完全置中) */
+/* 頂部精簡單行橫排 HUD */
+.top-hud-bar {
+  width: 100%;
+  max-width: 480px;
+  background: var(--panel-bg);
+  border: 3px solid #000;
+  padding: 4px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 9px;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.next-item {
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+}
+#next-canvas {
+  background: #0f0f1b;
+  border: 1px solid #000;
+}
+
+.hud-lbl {
+  font-size: 8px;
+  color: var(--accent-gold);
+}
+
+.hud-val {
+  font-size: 9px;
+  font-weight: bold;
+}
+
+/* 遊戲主佈局 (棋盤全幅置中放大) */
 .game-layout {
   display: flex;
-  gap: 10px;
   max-width: 480px;
   width: 100%;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   touch-action: none;
 }
 
@@ -206,72 +224,7 @@ body {
   display: block;
 }
 
-/* 右側大型資訊方框 */
-.side-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 10px;
-}
-
-.panel-box {
-  background: var(--panel-bg);
-  border: 3px solid #000;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.main-info-box {
-  width: 86px;
-  padding: 8px 4px;
-  gap: 5px;
-}
-
-.info-divider {
-  width: 90%;
-  height: 2px;
-  background: #000;
-  margin: 3px 0;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 2px;
-}
-
-.stat-label {
-  font-size: 8px;
-  color: var(--accent-gold);
-}
-
-.stat-val {
-  font-size: 9px;
-  font-weight: bold;
-}
-
-.stat-combo {
-  color: var(--accent-gold);
-  font-size: 8px;
-  font-weight: bold;
-  animation: pulse 0.6s infinite alternate;
-}
-@keyframes pulse {
-  0% { transform: scale(0.95); }
-  100% { transform: scale(1.1); }
-}
-
-.panel-title {
-  color: var(--accent-gold);
-  font-size: 9px;
-}
-
-/* 動態像素倒數進度條 */
+/* 活躍 Buff 狀態列 */
 .active-buffs {
   width: 100%;
   max-width: 480px;
@@ -308,6 +261,11 @@ body {
 .buff-fill.danger {
   background: var(--accent-red);
   animation: pulse 0.3s infinite alternate;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); }
+  100% { transform: scale(1.1); }
 }
 
 /* 道具 Toast */

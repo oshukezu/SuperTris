@@ -13,17 +13,20 @@
     <p data-i18n="portrait_warning">[NOTICE] 請轉為直向模式遊玩（禁止橫向操作）</p>
   </div>
 
-  <!-- 頂部導航列 (大整併：無 Emoji，整合語言/聲音/暫停/重開/排行) -->
+  <!-- 頂部精簡導航列：左側 Logo，右側 [SET] 齒輪按鈕 -->
   <header class="top-nav">
     <div class="nav-brand">SUPERTRIS</div>
-    <div class="nav-buttons">
-      <button class="pixel-btn" id="lang-toggle-btn">EN</button>
-      <button class="pixel-btn" id="mute-toggle-btn">SOUND</button>
-      <button class="pixel-btn" id="pause-btn" data-i18n="pause">PAUSE</button>
-      <button class="pixel-btn pixel-btn-red" id="restart-btn" data-i18n="restart">RESET</button>
-      <button class="pixel-btn pixel-btn-accent" id="leaderboard-btn" data-i18n="leaderboard">RANK</button>
-    </div>
+    <button class="pixel-btn pixel-btn-accent" id="set-menu-btn">[SET]</button>
   </header>
+
+  <!-- [SET] 下拉收折抽屜選單 -->
+  <div id="set-drawer" class="set-drawer hidden">
+    <button class="pixel-btn drawer-btn" id="lang-toggle-btn">EN</button>
+    <button class="pixel-btn drawer-btn" id="mute-toggle-btn">SOUND: ON</button>
+    <button class="pixel-btn drawer-btn" id="pause-btn" data-i18n="pause">PAUSE</button>
+    <button class="pixel-btn drawer-btn pixel-btn-red" id="restart-btn" data-i18n="restart">RESTART</button>
+    <button class="pixel-btn drawer-btn pixel-btn-accent" id="leaderboard-btn" data-i18n="leaderboard">RANKINGS</button>
+  </div>
 
   <!-- 標題主選單畫面 (Title Screen) -->
   <section id="title-screen">
@@ -40,14 +43,41 @@
     </div>
   </section>
 
-  <!-- 遊戲主畫面 (HUD + Canvas + 全螢幕手勢層) -->
+  <!-- 遊戲主畫面 (單行置頂 HUD + Canvas) -->
   <main id="hud" class="hidden" style="width: 100%; max-width: 480px;">
-    <!-- 道具 Buff 狀態列與像素進度條 -->
-    <div id="active-powerups" class="active-buffs" style="min-height: 18px;"></div>
+    <!-- 頂部精簡單行橫排 HUD：Next + Score + Level + Lines + Coin + Life -->
+    <div class="top-hud-bar">
+      <div class="hud-item next-item">
+        <span class="hud-lbl" data-i18n="next">NEXT</span>
+        <canvas id="next-canvas" width="36" height="36"></canvas>
+      </div>
+      <div class="hud-item">
+        <span class="hud-lbl" data-i18n="score">SCORE</span>
+        <span class="hud-val" id="hud-score">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-lbl" data-i18n="level">LVL</span>
+        <span class="hud-val" id="hud-level">1</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-lbl" data-i18n="lines">LINES</span>
+        <span class="hud-val" id="hud-lines">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-lbl">🪙</span>
+        <span class="hud-val"><strong id="hud-coins">0</strong>/100</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-lbl">🍄</span>
+        <span class="hud-val" id="hud-lives" style="color: #2ecc71;">3</span>
+      </div>
+    </div>
 
-    <!-- 遊戲佈局：中間 Canvas 完全置中 + 右側 緊湊大型數據方框 (左側按鈕已清空) -->
+    <!-- 道具 Buff 狀態列與像素進度條 -->
+    <div id="active-powerups" class="active-buffs" style="min-height: 16px;"></div>
+
+    <!-- 棋盤全幅放大居中佈局 -->
     <div class="game-layout" id="touch-gesture-area">
-      <!-- 中間 主棋盤畫布 -->
       <div class="canvas-container">
         <canvas id="game-canvas" width="280" height="560"></canvas>
         <div id="item-toast" class="item-toast hidden"></div>
@@ -56,43 +86,6 @@
           <h2 style="color: var(--accent-gold);" data-i18n="pause">PAUSED (TAP TO RESUME)</h2>
         </div>
       </div>
-
-      <!-- 右側 大型整潔資訊方框 (Next + 數值) -->
-      <aside class="side-panel">
-        <div class="panel-box main-info-box">
-          <span class="panel-title" data-i18n="next">NEXT</span>
-          <canvas id="next-canvas" width="60" height="60"></canvas>
-
-          <div class="info-divider"></div>
-
-          <div class="stat-item">
-            <span class="stat-label" data-i18n="score">SCORE</span>
-            <span class="stat-val" id="hud-score">0</span>
-          </div>
-
-          <div class="stat-item">
-            <span class="stat-label" data-i18n="level">LVL</span>
-            <span class="stat-val" id="hud-level">1</span>
-          </div>
-
-          <div class="stat-item">
-            <span class="stat-label" data-i18n="lines">LINES</span>
-            <span class="stat-val" id="hud-lines">0</span>
-          </div>
-
-          <div class="stat-item">
-            <span class="stat-label"><span class="pixel-icon icon-coin"></span>COIN</span>
-            <span class="stat-val"><strong id="hud-coins">0</strong>/100</span>
-          </div>
-
-          <div class="stat-item">
-            <span class="stat-label"><span class="pixel-icon icon-mushroom"></span>LIFE</span>
-            <span class="stat-val" id="hud-lives" style="color: #2ecc71;">3</span>
-          </div>
-
-          <div id="hud-combo" class="stat-combo hidden"></div>
-        </div>
-      </aside>
     </div>
   </main>
 
@@ -129,9 +122,9 @@
       <div id="go-new-record" class="hidden" style="color: #f1c40f;" data-i18n="new_record">[NEW RECORD] 歷史新高！</div>
 
       <div class="stats-grid">
-        <div><span data-i18n="score">分數</span>: <strong id="go-score">0</strong></div>
-        <div><span data-i18n="cleared_lines">消行</span>: <strong id="go-lines">0</strong></div>
-        <div><span data-i18n="max_combo">最大連擊</span>: <strong id="go-combo">0</strong></div>
+        <div><span data-i18n="score">SCORE</span>: <strong id="go-score">0</strong></div>
+        <div><span data-i18n="cleared_lines">LINES</span>: <strong id="go-lines">0</strong></div>
+        <div><span data-i18n="max_combo">COMBO</span>: <strong id="go-combo">0</strong></div>
         <div style="grid-column: span 2; color: var(--accent-gold);">
           超越了 <strong id="go-percent">99</strong>% 玩家！
         </div>

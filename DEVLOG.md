@@ -2,23 +2,18 @@
 
 ---
 
-### [2026-09-03] 終極優化：全 Emoji 替換、800ms Lock Delay、連續直落與版面防橫移跑版
-- **全面移除 Emoji，改用純 CSS 16x16 點陣圖標與 8-Bit 標籤**：
-  - 徹底清除全站所有 Emoji（金幣、蘑菇、星星、火焰花、獎牌、喇叭等）。
-  - 在 `style.css` 透過純 CSS 像素陰影與裁切實作 `.icon-coin`、`.icon-mushroom`、`.icon-star`、`.icon-fire` 16x16 點陣圖標，零外部圖片依賴，原汁原味呈現紅白機 8-bit 風格。
-  - 按鈕與文字全數改為 NES 經典大寫文字（`[SOUND]`, `[PAUSE]`, `[RESTART]`, `[RANK]`, `NO.1`, `[1UP]` 等）。
-- **HUD 道具動態倒數收縮進度條**：
-  - `js/mario.js` 實作動態像素進度條與大字倒數秒數（`SCORE x2 (28s)`、`SUPER STAR (12s)`），秒數小於等於 5 秒時進入紅色警示閃爍。
-- **手機觸控連續極速直落 (Continuous Fast Drop)**：
-  - `src/controls.js`：向下滑動短按為單格軟落；持續按住時以每 60ms 快速下墜一格的頻率進入極速連續直落，手指放開立即停止。
-- **800ms 碰地微調延遲 (Lock Delay)**：
-  - `src/tetris.js`：當方塊碰觸底部或積木表面時啟動 800ms 緩衝計時器；期間每次左右平移或旋轉微調皆重新刷新 800ms（上限 15 次）。
-  - 碰地橫移微調時伴隨輕脆的 30ms 短音（`SoundEngine.playLockSlide()`）。
-- **移除左側按鈕、頂部導航列整合**：
-  - 棋盤左側完全清空，棋盤居中極大化。
-  - 頂部導航列完整整併：`[EN/中] [SOUND] [PAUSE] [RESET] [RANK]`。
-- **根治手機下拉誤觸與第三方瀏覽器左右橫移跑版**：
-  - 全域設定 `position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; overflow: hidden !important; overscroll-behavior: none !important;`。
-  - 全域 `touchmove` 被動監聽關閉並呼叫 `e.preventDefault()`，徹底阻斷原生下拉刷新與 WebView 橫向拉扯位移。
-- **行數規範嚴格審查**：
-  - 全專案單檔行數維持在 87~371 行，完全符合 400 行限制。
+### [2026-09-03] 下落生成修復、[SET] 抽屜選單、置頂單行 HUD 與道具 Emoji 回歸
+- **修復方塊落底後不生成下一塊之核心 Bug**：
+  - 在 `src/tetris.js` 修正碰地檢驗與鎖定流程。
+  - 當自然下落無法再向下且 Lock Delay 結束時，強制觸發 `lockCurrentPiece(1)` 並必定呼叫 `spawnPiece(1)`，徹底確保方塊能 100% 持續循環下落。
+- **頂部導航列收折為 `[SET]` 抽屜選單**：
+  - 頂部只保留左側標題與右側 `[SET]` 文字按鈕。
+  - 點擊 `[SET]` 展開下拉像素抽屜，收納 `[EN/中]`, `[SOUND: ON/OFF]`, `[PAUSE]`, `[RESTART]`, `[RANKINGS]`，點擊外部自動收起。
+- **右側數據重構為「置頂單行橫排 HUD」**：
+  - 徹底移除原本右側的側邊欄，將 Next 迷你方塊、Score、Level、Lines、🪙 金幣與 🍄 命數全數整合於棋盤正上方的單行橫排中。
+  - 主棋盤獲得完整水平與垂直視野，全幅置中放大，手機端遊玩爽快度極大提升。
+- **道具圖示全面回歸生動 Emoji（按鈕維持純文字無圖示）**：
+  - 道具金幣 `🪙`、蘑菇 `🍄`、星星 `⭐`、火焰花 `🌸` 回歸鮮明直觀的 Emoji 呈現。
+  - 按鈕與系統功能一律維持大寫 8-Bit 純文字標籤。
+- **檔案規範檢查**：
+  - 全專案單檔行數維持在 87~372 行，完全符合 400 行上限。
