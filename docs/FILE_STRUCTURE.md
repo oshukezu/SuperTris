@@ -17,7 +17,7 @@ SuperTris/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置
 ├── src/                    # 遊戲核心引擎模組 (上限 400 行/檔)
-│   ├── renderer.js         # 1985交錯磚紋、四角鉚釘問號方塊、LV3隱藏Ghost (267行)
+│   ├── renderer.js         # 3階堆疊高度磚色、LV3隱藏Ghost、1985動畫 (277行)
 │   ├── tetris.js           # 首頁方向鍵選單、雙人同方塊同步、300ms心跳、WakeLock (393行)
 │   ├── game_ui.js          # 1P專屬暫停權限、HUD 按鈕事件監聽、成績提交 (77行)
 │   ├── controls.js         # 鍵盤監聽、純手勢引擎、P1/P2 嚴格分工與雙擊硬降 (151行)

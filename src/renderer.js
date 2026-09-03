@@ -1,4 +1,4 @@
-// SuperTris Canvas 畫面渲染器 (1985瑪利歐像素交錯磚紋、四角鉚釘問號方塊、城堡石磚)
+// SuperTris Canvas 畫面渲染器 (3階堆疊高度原創安全磚色、LV3隱藏Ghost、1985動畫)
 class Renderer {
   constructor(canvas, nextCanvas, cellSize = 34) {
     this.canvas = canvas;
@@ -6,17 +6,30 @@ class Renderer {
     this.nextCanvas = nextCanvas;
     this.nextCtx = nextCanvas.getContext('2d');
     this.cellSize = cellSize;
-    this.colors = {
-      I: { main: '#00ffff', light: '#a6ffff', dark: '#008b8b' },
-      J: { main: '#2980b9', light: '#5dade2', dark: '#1b4f72' },
-      L: { main: '#e67e22', light: '#f5b041', dark: '#935116' },
-      O: { main: '#f1c40f', light: '#f9e79f', dark: '#9a7d0a' },
-      S: { main: '#2ecc71', light: '#82e0aa', dark: '#196f3d' },
-      T: { main: '#9b59b6', light: '#d2b4de', dark: '#5b2c6f' },
-      Z: { main: '#e74c3c', light: '#f1948a', dark: '#922b21' },
-      BRICK: { main: '#c84c0c', light: '#fc9838', dark: '#682000' }
+    // 3 階原創非侵權安全調色盤
+    this.palettes = {
+      low: { main: '#d35400', light: '#e67e22', dark: '#935116' },    // 暖磚紅系 (< 8 行)
+      mid: { main: '#b9770e', light: '#d4ac0d', dark: '#7d5a0a' },    // 暖棕土系 (8-14 行)
+      high: { main: '#2980b9', light: '#5dade2', dark: '#1b4f72' }   // 冷鋼藍系 (≥ 15 行)
     };
     this.animations = [];
+  }
+
+  getStackHeight(board) {
+    if (!board || !board.grid) return 0;
+    for (let r = 0; r < board.rows; r++) {
+      if (board.grid[r].some(cell => cell !== null)) {
+        return board.rows - r;
+      }
+    }
+    return 0;
+  }
+
+  getActivePalette(board) {
+    const height = this.getStackHeight(board);
+    if (height >= 15) return this.palettes.high;
+    if (height >= 8) return this.palettes.mid;
+    return this.palettes.low;
   }
 
   addCoinAnimation(gridX, gridY) {
@@ -39,10 +52,13 @@ class Renderer {
 
   render(board, p1Piece, p2Piece, nextPiece, mode = 'single', level = 1) {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.drawBoard(board);
-    if (p1Piece && level < 3) this.drawGhost(board, p1Piece);
-    if (p1Piece) this.drawPiece(p1Piece);
-    if (this.nextCtx && nextPiece) this.drawNextPiece(nextPiece);
+    const activePalette = this.getActivePalette(board);
+    this.drawBoard(board, activePalette);
+
+    if (p1Piece && level < 3) this.drawGhost(board, p1Piece, activePalette);
+    if (p1Piece) this.drawPiece(p1Piece, activePalette);
+    if (this.nextCtx && nextPiece) this.drawNextPiece(nextPiece, activePalette);
+
     this.renderAnimations();
   }
 
@@ -86,19 +102,19 @@ class Renderer {
     }
   }
 
-  drawBoard(board) {
+  drawBoard(board, palette) {
     const isStar = window.Mario && window.Mario.activeEffects.starMode;
     for (let r = 0; r < board.rows; r++) {
       for (let c = 0; c < board.cols; c++) {
         const cell = board.grid[r][c];
         if (cell) {
-          this.drawCell(this.ctx, c * this.cellSize, r * this.cellSize, this.cellSize, cell.type, false, cell.isQuestion, cell.isBomb, isStar);
+          this.drawCell(this.ctx, c * this.cellSize, r * this.cellSize, this.cellSize, cell.type, false, cell.isQuestion, cell.isBomb, isStar, palette);
         }
       }
     }
   }
 
-  drawGhost(board, piece) {
+  drawGhost(board, piece, palette) {
     if (!piece || piece.type === 'Q') return;
     let ghostY = piece.y;
     while (!board.isCollision(piece.getBlocks(piece.x, ghostY + 1))) ghostY++;
@@ -106,21 +122,21 @@ class Renderer {
     const hasBomb = window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0;
     const blocks = piece.getBlocks(piece.x, ghostY);
     blocks.forEach(b => {
-      this.drawCell(this.ctx, b.x * this.cellSize, b.y * this.cellSize, this.cellSize, piece.type, true, b.isQuestion, hasBomb, isStar);
+      this.drawCell(this.ctx, b.x * this.cellSize, b.y * this.cellSize, this.cellSize, piece.type, true, b.isQuestion, hasBomb, isStar, palette);
     });
   }
 
-  drawPiece(piece) {
+  drawPiece(piece, palette) {
     if (!piece) return;
     const isStar = window.Mario && window.Mario.activeEffects.starMode;
     const hasBomb = window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0;
     const blocks = piece.getBlocks();
     blocks.forEach(b => {
-      this.drawCell(this.ctx, b.x * this.cellSize, b.y * this.cellSize, this.cellSize, piece.type, false, b.isQuestion, hasBomb, isStar);
+      this.drawCell(this.ctx, b.x * this.cellSize, b.y * this.cellSize, this.cellSize, piece.type, false, b.isQuestion, hasBomb, isStar, palette);
     });
   }
 
-  drawCell(ctx, x, y, size, type, isGhost = false, isQuestion = false, isBomb = false, isStar = false) {
+  drawCell(ctx, x, y, size, type, isGhost = false, isQuestion = false, isBomb = false, isStar = false, palette) {
     ctx.save();
     if (isGhost) ctx.globalAlpha = 0.28;
 
@@ -131,15 +147,15 @@ class Renderer {
     } else if (isQuestion) {
       this.drawQuestionBlock(ctx, x, y, size, isGhost);
     } else {
-      this.drawMarioBrick(ctx, x, y, size, type, isGhost);
+      this.drawBrick(ctx, x, y, size, palette, isGhost);
     }
     ctx.restore();
   }
 
-  // 1. 經典 1985 瑪利歐交錯像素磚紋 (4-segment Brick)
-  drawMarioBrick(ctx, x, y, size, type, isGhost) {
-    const theme = this.colors[type] || this.colors.BRICK;
-    ctx.fillStyle = theme.main;
+  // 1. 原創 3 階交錯像素磚紋 (依高度自動切換暖磚紅 / 暖棕土 / 冷鋼藍)
+  drawBrick(ctx, x, y, size, palette, isGhost) {
+    const p = palette || this.palettes.low;
+    ctx.fillStyle = p.main;
     ctx.fillRect(x, y, size, size);
 
     ctx.strokeStyle = '#000000';
@@ -148,76 +164,70 @@ class Renderer {
 
     if (isGhost) return;
 
-    // 頂部高光
-    ctx.fillStyle = theme.light;
+    // 頂部左側高光
+    ctx.fillStyle = p.light;
     ctx.fillRect(x + 2, y + 2, size - 4, 2);
     ctx.fillRect(x + 2, y + 2, 2, size - 4);
 
-    // 底部與右側暗部
-    ctx.fillStyle = theme.dark;
+    // 底部右側陰影
+    ctx.fillStyle = p.dark;
     ctx.fillRect(x + 2, y + size - 4, size - 4, 2);
     ctx.fillRect(x + size - 4, y + 2, 2, size - 4);
 
-    // 經典交錯橫豎磚縫 (Mortar Lines)
+    // 4 段交錯磚縫刻痕
     const midY = Math.floor(y + size / 2);
     ctx.fillStyle = '#000000';
-    ctx.fillRect(x + 2, midY - 1, size - 4, 2); // 中間橫縫
+    ctx.fillRect(x + 2, midY - 1, size - 4, 2); // 橫縫
 
-    // 上排中豎縫
     const midX = Math.floor(x + size / 2);
-    ctx.fillRect(midX - 1, y + 2, 2, midY - y - 3);
+    ctx.fillRect(midX - 1, y + 2, 2, midY - y - 3); // 上中豎縫
 
-    // 下排兩側 1/4 與 3/4 錯位豎縫
     const q1X = Math.floor(x + size * 0.28);
     const q3X = Math.floor(x + size * 0.72);
-    ctx.fillRect(q1X - 1, midY + 1, 2, y + size - midY - 4);
-    ctx.fillRect(q3X - 1, midY + 1, 2, y + size - midY - 4);
+    ctx.fillRect(q1X - 1, midY + 1, 2, y + size - midY - 4); // 下左豎縫
+    ctx.fillRect(q3X - 1, midY + 1, 2, y + size - midY - 4); // 下右豎縫
   }
 
-  // 2. 經典 1985 暖金問號方塊 (4 Corner Rivets + ?)
+  // 2. 原創暖金問號方塊
   drawQuestionBlock(ctx, x, y, size, isGhost) {
-    ctx.fillStyle = '#fc9838'; // 1985 原版暖金色
+    ctx.fillStyle = '#f1c40f';
     ctx.fillRect(x, y, size, size);
-
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2;
     ctx.strokeRect(x, y, size, size);
 
     if (isGhost) return;
 
-    // 雙層邊框與暗橘陰影
-    ctx.fillStyle = '#b84418';
+    ctx.fillStyle = '#d4ac0d';
     ctx.fillRect(x + 2, y + size - 4, size - 4, 2);
     ctx.fillRect(x + size - 4, y + 2, 2, size - 4);
 
-    // 4 個角落 2x2 像素深色小鉚釘 (Corner Rivets)
     ctx.fillStyle = '#000000';
     ctx.fillRect(x + 3, y + 3, 2, 2);
     ctx.fillRect(x + size - 5, y + 3, 2, 2);
     ctx.fillRect(x + 3, y + size - 5, 2, 2);
     ctx.fillRect(x + size - 5, y + size - 5, 2, 2);
 
-    // 中央粗體 8-Bit 白色像素問號
     ctx.font = 'bold 16px "Courier New", monospace';
     ctx.fillStyle = '#000000';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('?', x + size / 2 + 1, y + size / 2 + 1); // 陰影
+    ctx.fillText('?', x + size / 2 + 1, y + size / 2 + 1);
     ctx.fillStyle = '#ffffff';
     ctx.fillText('?', x + size / 2, y + size / 2);
   }
 
-  // 3. 經典 1985 城堡石磚 / 炸彈方塊 (Castle Stone 💥)
+  // 3. 城堡暗曜石石磚
   drawCastleBlock(ctx, x, y, size) {
-    ctx.fillStyle = '#707070';
+    ctx.fillStyle = '#34495e';
     ctx.fillRect(x, y, size, size);
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2;
     ctx.strokeRect(x, y, size, size);
 
-    ctx.fillStyle = '#a0a0a0';
+    ctx.fillStyle = '#5dade2';
     ctx.fillRect(x + 2, y + 2, size - 4, 2);
-    ctx.fillStyle = '#303030';
+    ctx.fillStyle = '#1b4f72';
     ctx.fillRect(x + 2, y + size - 4, size - 4, 2);
 
     ctx.font = '16px monospace';
@@ -226,7 +236,7 @@ class Renderer {
     ctx.fillText('💥', x + size / 2, y + size / 2);
   }
 
-  // 4. ⭐ 無敵星星彩虹流光磚塊
+  // 4. ⭐ 星星方塊
   drawStarBlock(ctx, x, y, size) {
     ctx.fillStyle = '#f39c12';
     ctx.fillRect(x, y, size, size);
@@ -240,7 +250,7 @@ class Renderer {
     ctx.fillText('⭐', x + size / 2, y + size / 2);
   }
 
-  drawNextPiece(piece) {
+  drawNextPiece(piece, palette) {
     if (!this.nextCtx) return;
     const ctx = this.nextCtx;
     ctx.clearRect(0, 0, this.nextCanvas.width, this.nextCanvas.height);
@@ -248,12 +258,12 @@ class Renderer {
     const shape = piece.shape;
     const offsetX = (this.nextCanvas.width - shape[0].length * size) / 2;
     const offsetY = (this.nextCanvas.height - shape.length * size) / 2;
+    const p = palette || this.palettes.low;
 
     for (let r = 0; r < shape.length; r++) {
       for (let c = 0; c < shape[r].length; c++) {
         if (shape[r][c]) {
-          const theme = this.colors[piece.type] || this.colors.BRICK;
-          ctx.fillStyle = theme.main;
+          ctx.fillStyle = p.main;
           ctx.fillRect(offsetX + c * size, offsetY + r * size, size, size);
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 1;
