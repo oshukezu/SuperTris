@@ -1,4 +1,4 @@
-// SuperTris Canvas 畫面渲染器 (LV3隱藏Ghost、1985金幣拋跳、道具冒出動畫)
+// SuperTris Canvas 畫面渲染器 (1985瑪利歐像素交錯磚紋、四角鉚釘問號方塊、城堡石磚)
 class Renderer {
   constructor(canvas, nextCanvas, cellSize = 34) {
     this.canvas = canvas;
@@ -7,26 +7,24 @@ class Renderer {
     this.nextCtx = nextCanvas.getContext('2d');
     this.cellSize = cellSize;
     this.colors = {
-      I: '#00ffff', J: '#2980b9', L: '#e67e22',
-      O: '#f1c40f', S: '#2ecc71', T: '#9b59b6', Z: '#e74c3c',
-      Q: '#d4ac0d', BOMB: '#e74c3c', STAR: '#f1c40f'
+      I: { main: '#00ffff', light: '#a6ffff', dark: '#008b8b' },
+      J: { main: '#2980b9', light: '#5dade2', dark: '#1b4f72' },
+      L: { main: '#e67e22', light: '#f5b041', dark: '#935116' },
+      O: { main: '#f1c40f', light: '#f9e79f', dark: '#9a7d0a' },
+      S: { main: '#2ecc71', light: '#82e0aa', dark: '#196f3d' },
+      T: { main: '#9b59b6', light: '#d2b4de', dark: '#5b2c6f' },
+      Z: { main: '#e74c3c', light: '#f1948a', dark: '#922b21' },
+      BRICK: { main: '#c84c0c', light: '#fc9838', dark: '#682000' }
     };
-    this.animations = []; // 浮動金幣與冒出道具特效池
+    this.animations = [];
   }
 
   addCoinAnimation(gridX, gridY) {
     const px = gridX * this.cellSize + this.cellSize / 2;
     const py = gridY * this.cellSize;
     this.animations.push({
-      type: 'coin',
-      x: px,
-      startY: py,
-      currentY: py,
-      vy: -7, // 向上彈起初速
-      gravity: 0.35,
-      rotation: 0,
-      alpha: 1.0,
-      life: 0
+      type: 'coin', x: px, startY: py, currentY: py,
+      vy: -7, gravity: 0.35, rotation: 0, alpha: 1.0, life: 0
     });
   }
 
@@ -34,26 +32,17 @@ class Renderer {
     const px = gridX * this.cellSize;
     const py = gridY * this.cellSize;
     this.animations.push({
-      type: 'item_rise',
-      itemType: itemType,
-      x: px,
-      targetY: py - this.cellSize,
-      currentY: py,
-      alpha: 1.0,
-      life: 0,
-      duration: 30 // 約 0.5 秒冒出
+      type: 'item_rise', itemType: itemType, x: px,
+      targetY: py - this.cellSize, currentY: py, alpha: 1.0, life: 0, duration: 30
     });
   }
 
   render(board, p1Piece, p2Piece, nextPiece, mode = 'single', level = 1) {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.drawBoard(board);
-
-    // 規則：等級 < 3 (消 < 40 行) 顯示 Ghost 投影；等級 >= 3 自動隱藏
     if (p1Piece && level < 3) this.drawGhost(board, p1Piece);
     if (p1Piece) this.drawPiece(p1Piece);
     if (this.nextCtx && nextPiece) this.drawNextPiece(nextPiece);
-
     this.renderAnimations();
   }
 
@@ -61,7 +50,6 @@ class Renderer {
     for (let i = this.animations.length - 1; i >= 0; i--) {
       const anim = this.animations[i];
       anim.life++;
-
       if (anim.type === 'coin') {
         anim.currentY += anim.vy;
         anim.vy += anim.gravity;
@@ -80,30 +68,19 @@ class Renderer {
         this.ctx.fill();
         this.ctx.stroke();
         this.ctx.restore();
-
         if (anim.alpha <= 0) this.animations.splice(i, 1);
       } else if (anim.type === 'item_rise') {
-        const progress = Math.min(1, anim.life / anim.duration);
         anim.currentY = anim.currentY + (anim.targetY - anim.currentY) * 0.12;
-
         this.ctx.save();
-        this.ctx.globalAlpha = 1.0;
-        this.ctx.fillStyle = '#f1c40f';
-        this.ctx.fillRect(anim.x, anim.currentY, this.cellSize, this.cellSize);
-        this.ctx.strokeStyle = '#000';
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(anim.x, anim.currentY, this.cellSize, this.cellSize);
-
+        this.drawQuestionBlock(this.ctx, anim.x, anim.currentY, this.cellSize, false);
         this.ctx.font = '16px monospace';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         let icon = '🍄';
         if (anim.itemType === 'fire_flower') icon = '🌸';
         if (anim.itemType === 'super_star') icon = '⭐';
-        if (anim.itemType === 'green_mushroom') icon = '🍄';
         this.ctx.fillText(icon, anim.x + this.cellSize / 2, anim.currentY + this.cellSize / 2);
         this.ctx.restore();
-
         if (anim.life >= anim.duration) this.animations.splice(i, 1);
       }
     }
@@ -115,7 +92,7 @@ class Renderer {
       for (let c = 0; c < board.cols; c++) {
         const cell = board.grid[r][c];
         if (cell) {
-          this.drawCell(c * this.cellSize, r * this.cellSize, this.cellSize, cell.type, false, cell.isQuestion, cell.isBomb, isStar);
+          this.drawCell(this.ctx, c * this.cellSize, r * this.cellSize, this.cellSize, cell.type, false, cell.isQuestion, cell.isBomb, isStar);
         }
       }
     }
@@ -124,14 +101,12 @@ class Renderer {
   drawGhost(board, piece) {
     if (!piece || piece.type === 'Q') return;
     let ghostY = piece.y;
-    while (!board.isCollision(piece.getBlocks(piece.x, ghostY + 1))) {
-      ghostY++;
-    }
+    while (!board.isCollision(piece.getBlocks(piece.x, ghostY + 1))) ghostY++;
     const isStar = window.Mario && window.Mario.activeEffects.starMode;
     const hasBomb = window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0;
     const blocks = piece.getBlocks(piece.x, ghostY);
     blocks.forEach(b => {
-      this.drawCell(b.x * this.cellSize, b.y * this.cellSize, this.cellSize, piece.type, true, b.isQuestion, hasBomb, isStar);
+      this.drawCell(this.ctx, b.x * this.cellSize, b.y * this.cellSize, this.cellSize, piece.type, true, b.isQuestion, hasBomb, isStar);
     });
   }
 
@@ -141,52 +116,128 @@ class Renderer {
     const hasBomb = window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0;
     const blocks = piece.getBlocks();
     blocks.forEach(b => {
-      this.drawCell(b.x * this.cellSize, b.y * this.cellSize, this.cellSize, piece.type, false, b.isQuestion, hasBomb, isStar);
+      this.drawCell(this.ctx, b.x * this.cellSize, b.y * this.cellSize, this.cellSize, piece.type, false, b.isQuestion, hasBomb, isStar);
     });
   }
 
-  drawCell(x, y, size, type, isGhost = false, isQuestion = false, isBomb = false, isStar = false) {
-    const ctx = this.ctx;
+  drawCell(ctx, x, y, size, type, isGhost = false, isQuestion = false, isBomb = false, isStar = false) {
     ctx.save();
     if (isGhost) ctx.globalAlpha = 0.28;
 
-    let baseColor = this.colors[type] || '#3498db';
-    if (isStar) baseColor = '#f39c12';
-    if (isBomb) baseColor = '#e74c3c';
+    if (isStar) {
+      this.drawStarBlock(ctx, x, y, size);
+    } else if (isBomb) {
+      this.drawCastleBlock(ctx, x, y, size);
+    } else if (isQuestion) {
+      this.drawQuestionBlock(ctx, x, y, size, isGhost);
+    } else {
+      this.drawMarioBrick(ctx, x, y, size, type, isGhost);
+    }
+    ctx.restore();
+  }
 
-    ctx.fillStyle = baseColor;
+  // 1. 經典 1985 瑪利歐交錯像素磚紋 (4-segment Brick)
+  drawMarioBrick(ctx, x, y, size, type, isGhost) {
+    const theme = this.colors[type] || this.colors.BRICK;
+    ctx.fillStyle = theme.main;
     ctx.fillRect(x, y, size, size);
 
-    ctx.strokeStyle = '#000';
+    ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2;
     ctx.strokeRect(x, y, size, size);
 
-    if (!isGhost) {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.fillRect(x + 2, y + 2, size - 4, 3);
-      ctx.fillRect(x + 2, y + 2, 3, size - 4);
-    }
+    if (isGhost) return;
 
-    if (isStar) {
-      ctx.font = '16px monospace';
-      ctx.fillStyle = '#fff';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('⭐', x + size / 2, y + size / 2);
-    } else if (isBomb) {
-      ctx.font = '16px monospace';
-      ctx.fillStyle = '#fff';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('💥', x + size / 2, y + size / 2);
-    } else if (isQuestion) {
-      ctx.font = 'bold 15px "Courier New", monospace';
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('?', x + size / 2, y + size / 2);
-    }
-    ctx.restore();
+    // 頂部高光
+    ctx.fillStyle = theme.light;
+    ctx.fillRect(x + 2, y + 2, size - 4, 2);
+    ctx.fillRect(x + 2, y + 2, 2, size - 4);
+
+    // 底部與右側暗部
+    ctx.fillStyle = theme.dark;
+    ctx.fillRect(x + 2, y + size - 4, size - 4, 2);
+    ctx.fillRect(x + size - 4, y + 2, 2, size - 4);
+
+    // 經典交錯橫豎磚縫 (Mortar Lines)
+    const midY = Math.floor(y + size / 2);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(x + 2, midY - 1, size - 4, 2); // 中間橫縫
+
+    // 上排中豎縫
+    const midX = Math.floor(x + size / 2);
+    ctx.fillRect(midX - 1, y + 2, 2, midY - y - 3);
+
+    // 下排兩側 1/4 與 3/4 錯位豎縫
+    const q1X = Math.floor(x + size * 0.28);
+    const q3X = Math.floor(x + size * 0.72);
+    ctx.fillRect(q1X - 1, midY + 1, 2, y + size - midY - 4);
+    ctx.fillRect(q3X - 1, midY + 1, 2, y + size - midY - 4);
+  }
+
+  // 2. 經典 1985 暖金問號方塊 (4 Corner Rivets + ?)
+  drawQuestionBlock(ctx, x, y, size, isGhost) {
+    ctx.fillStyle = '#fc9838'; // 1985 原版暖金色
+    ctx.fillRect(x, y, size, size);
+
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, size, size);
+
+    if (isGhost) return;
+
+    // 雙層邊框與暗橘陰影
+    ctx.fillStyle = '#b84418';
+    ctx.fillRect(x + 2, y + size - 4, size - 4, 2);
+    ctx.fillRect(x + size - 4, y + 2, 2, size - 4);
+
+    // 4 個角落 2x2 像素深色小鉚釘 (Corner Rivets)
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(x + 3, y + 3, 2, 2);
+    ctx.fillRect(x + size - 5, y + 3, 2, 2);
+    ctx.fillRect(x + 3, y + size - 5, 2, 2);
+    ctx.fillRect(x + size - 5, y + size - 5, 2, 2);
+
+    // 中央粗體 8-Bit 白色像素問號
+    ctx.font = 'bold 16px "Courier New", monospace';
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('?', x + size / 2 + 1, y + size / 2 + 1); // 陰影
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('?', x + size / 2, y + size / 2);
+  }
+
+  // 3. 經典 1985 城堡石磚 / 炸彈方塊 (Castle Stone 💥)
+  drawCastleBlock(ctx, x, y, size) {
+    ctx.fillStyle = '#707070';
+    ctx.fillRect(x, y, size, size);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, size, size);
+
+    ctx.fillStyle = '#a0a0a0';
+    ctx.fillRect(x + 2, y + 2, size - 4, 2);
+    ctx.fillStyle = '#303030';
+    ctx.fillRect(x + 2, y + size - 4, size - 4, 2);
+
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('💥', x + size / 2, y + size / 2);
+  }
+
+  // 4. ⭐ 無敵星星彩虹流光磚塊
+  drawStarBlock(ctx, x, y, size) {
+    ctx.fillStyle = '#f39c12';
+    ctx.fillRect(x, y, size, size);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, size, size);
+
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⭐', x + size / 2, y + size / 2);
   }
 
   drawNextPiece(piece) {
@@ -201,7 +252,8 @@ class Renderer {
     for (let r = 0; r < shape.length; r++) {
       for (let c = 0; c < shape[r].length; c++) {
         if (shape[r][c]) {
-          ctx.fillStyle = this.colors[piece.type] || '#fff';
+          const theme = this.colors[piece.type] || this.colors.BRICK;
+          ctx.fillStyle = theme.main;
           ctx.fillRect(offsetX + c * size, offsetY + r * size, size, size);
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 1;

@@ -195,6 +195,7 @@ class MultiplayerManager {
     if (this.role === 'host') {
       if (payload.action === 'rotate') this.game.rotateCurrentPiece(payload.dir || 1, 2);
       if (payload.action === 'soft_drop') this.game.moveCurrentPiece(0, 1, 2, true);
+      if (payload.action === 'hard_drop') this.game.hardDrop(2);
     } else {
       if (payload.action === 'sync_piece') {
         this.game.applyMirroredPiece(payload.piece, payload.nextPiece);

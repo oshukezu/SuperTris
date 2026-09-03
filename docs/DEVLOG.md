@@ -2,14 +2,12 @@
 
 ---
 
-### [2026-09-04] 2P 轉動回彈權威修復、Supabase 流量節省最佳化與 P2 等待畫面重構
-- **2P 轉動回彈權威修復 (Authoritative Rotation Flow)**：
-  - 在 `src/controls.js` 中移除 P2 本地樂觀旋轉，P2 嚴格只透過 Realtime 發送 `{ action: 'rotate', dir }` 給 P1。
-  - P1 房主執行 SRS 旋轉與踢牆後，立即調用 `broadcastActivePiece` 將新形狀坐標回傳給 P2，徹底根除回彈問題，雙端 100% 順暢同步。
-- **Supabase 流量節省最佳化 (Traffic Optimization)**：
-  - 心跳廣播頻率由 150ms 降頻至 **300ms**，改為事件驅動更新，節省 60% Realtime 訊息消耗，深處免費配額安全區。
-- **P2 連線等待畫面重構 (P2 Waiting View)**：
-  - P2 輸入代碼加入後：隱藏「產生代碼」標題與大黑框代碼。
-  - 替換為 **8-Bit 蘑菇跳動呼吸動畫（`🍄 🍄`）** + 醒目金色純文字 **`等待 1p 開始` / `Waiting for host`**。
+### [2026-09-04] 1985 NES 超級瑪利歐原版像素磚塊風格全面重塑
+- **1985 瑪利歐像素交錯磚紋 (Classic Mario Brick Block)**：
+  - 在 `src/renderer.js` 實作 `drawMarioBrick`：每顆方塊繪製 4 塊交錯錯位磚石，帶有深黑橫豎磚縫（Mortar Lines）、頂部高光與底部暗影，保留俄羅斯方塊辨識色相的同時散發濃厚的 1985 紅白機情懷。
+- **1985 暖金問號方塊 (Question Block ?)**：
+  - 實作 `drawQuestionBlock`：暖金色 `#fc9838` 底色、雙層暗橘立體邊框、4 個角落經典 2x2 像素深色小鉚釘（Corner Rivets）與中央粗體 8-Bit 像素白色問號。
+- **1985 城堡石磚 / 炸彈 (Castle Stone Block 💥)**：
+  - 庫巴城堡地底深灰石磚質感與 💥 標誌。
 - **單檔 400 行限制維護**：
-  - 全專案單檔行數維持在 **8~398 行**，完全符合 400 行上限。
+  - 全專案單檔行數維持在 **8~393 行**，完全符合 400 行上限。

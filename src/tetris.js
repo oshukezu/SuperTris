@@ -33,12 +33,9 @@ class SuperTrisGame {
   }
   initInitialHUD() {
     const highScore = window.Storage ? window.Storage.getHighScore('single') : 0;
-    const scoreEl = document.getElementById('hud-score');
-    if (scoreEl) scoreEl.textContent = String(highScore).padStart(6, '0');
-    const timeEl = document.getElementById('hud-time');
-    if (timeEl) timeEl.textContent = '--:--';
-    const worldEl = document.getElementById('hud-world');
-    if (worldEl) worldEl.textContent = '1-1';
+    document.getElementById('hud-score')?.replaceChildren(document.createTextNode(String(highScore).padStart(6, '0')));
+    document.getElementById('hud-time')?.replaceChildren(document.createTextNode('--:--'));
+    document.getElementById('hud-world')?.replaceChildren(document.createTextNode('1-1'));
   }
   async requestWakeLock() {
     try {
@@ -143,13 +140,7 @@ class SuperTrisGame {
   applyMirroredPiece(pieceData, nextPieceData) {
     if (!pieceData) { this.p1Piece = null; return; }
     if (!this.p1Piece) this.p1Piece = new window.Piece(pieceData.type);
-    this.p1Piece.type = pieceData.type;
-    this.p1Piece.x = pieceData.x;
-    this.p1Piece.y = pieceData.y;
-    this.p1Piece.rotation = pieceData.rotation;
-    this.p1Piece.shape = pieceData.shape;
-    this.p1Piece.isBomb = pieceData.isBomb;
-    this.p1Piece.isQuestion = pieceData.isQuestion;
+    Object.assign(this.p1Piece, pieceData);
     if (nextPieceData) this.nextPiece = nextPieceData;
   }
   returnToTitle() {
@@ -177,7 +168,12 @@ class SuperTrisGame {
   applyPauseSync(isPaused) {
     this.isPaused = isPaused;
     const overlay = document.getElementById('pause-overlay');
+    const subText = document.getElementById('pause-sub-text');
     if (overlay) overlay.classList.toggle('hidden', !this.isPaused);
+    if (subText) {
+      const showSub = this.isPaused && this.mode === 'coop' && window.Multiplayer && window.Multiplayer.role === 'guest';
+      subText.classList.toggle('hidden', !showSub);
+    }
     if (this.isPaused) {
       this.releaseWakeLock();
     } else {
@@ -377,7 +373,6 @@ class SuperTrisGame {
       }
     }
     if (window.Mario) window.Mario.tickTimers(dt / 1000);
-    // 心跳調整為 300ms 節省 60% 流量
     if (time - this.lastSyncTime > 300) {
       if (window.Multiplayer && window.Multiplayer.role === 'host') {
         window.Multiplayer.broadcastState({

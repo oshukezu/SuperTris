@@ -134,8 +134,9 @@
   </main>
 
   <!-- 全螢幕暫停遮罩 (點擊全螢幕任意像素皆可無縫恢復) -->
-  <div id="pause-overlay" class="modal-backdrop hidden" style="cursor: pointer; z-index: 92;">
-    <h2 style="color: var(--accent-gold); font-size: 22px; letter-spacing: 2px;">PAUSED</h2>
+  <div id="pause-overlay" class="modal-backdrop hidden" style="cursor: pointer; z-index: 92; flex-direction: column; gap: 8px;">
+    <h2 style="color: var(--accent-gold); font-size: 24px; letter-spacing: 2px;">PAUSED</h2>
+    <div id="pause-sub-text" class="hidden" style="color: #aaa; font-size: 13px;" data-i18n="waiting_p1_resume">等待 1p 解除暫停</div>
   </div>
 
   <!-- 雙人跨裝置配對房間 Modal (產生代碼 / 輸入代碼 一步到位 + 握手開局) -->

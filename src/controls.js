@@ -1,14 +1,16 @@
-// SuperTris 手勢與鍵盤控制器 (純觸控手勢、單擊即轉向、雙人權威轉送)
+// SuperTris 手勢與鍵盤控制器 (純觸控手勢、單擊即轉向、雙人嚴格分工)
 class Controls {
   constructor(game) {
     this.game = game;
     this.touchStartX = 0;
     this.touchStartY = 0;
     this.touchStartTime = 0;
+    this.lastTapTime = 0;
     this.isDragging = false;
     this.dragThreshold = 18;
     this.tapTimeThreshold = 250;
     this.tapDistThreshold = 12;
+    this.doubleTapThreshold = 300;
     this.initKeyboard();
     this.initTouchGestures();
   }
@@ -51,7 +53,7 @@ class Controls {
           if (!isCoop) {
             this.game.hardDrop(1);
           } else if (role === 'guest') {
-            window.Multiplayer.sendAction({ action: 'soft_drop' });
+            window.Multiplayer.sendAction({ action: 'hard_drop' });
           }
           break;
       }
@@ -90,6 +92,7 @@ class Controls {
       const isCoop = this.game.mode === 'coop' && window.Multiplayer && window.Multiplayer.isConnected;
       const role = isCoop ? window.Multiplayer.role : null;
 
+      // P1 (Host) 專管左右移動
       if (Math.abs(dx) > this.dragThreshold && (!isCoop || role === 'host')) {
         const step = dx > 0 ? 1 : -1;
         this.game.moveCurrentPiece(step, 0, 1, false);
@@ -97,6 +100,7 @@ class Controls {
         this.isDragging = true;
       }
 
+      // P2 (Guest) 專管加速軟降
       if (dy > this.dragThreshold) {
         if (!isCoop) {
           this.game.moveCurrentPiece(0, 1, 1, true);
@@ -114,7 +118,8 @@ class Controls {
     if (document.body.classList.contains('in-title')) return;
     e.preventDefault();
 
-    const dt = performance.now() - this.touchStartTime;
+    const now = performance.now();
+    const dt = now - this.touchStartTime;
     const changed = e.changedTouches[0];
     if (!changed) return;
 
@@ -129,8 +134,15 @@ class Controls {
       if (!isCoop) {
         this.game.rotateCurrentPiece(1, 1);
       } else if (role === 'guest') {
-        // P2 嚴格只向 P1 發送指令，等待 P1 廣播回傳，徹底防止回彈
-        window.Multiplayer.sendAction({ action: 'rotate', dir: 1 });
+        // P2 雙擊判定 ➔ 迅速降落 (Hard Drop)
+        if (now - this.lastTapTime < this.doubleTapThreshold) {
+          window.Multiplayer.sendAction({ action: 'hard_drop' });
+          this.lastTapTime = 0;
+        } else {
+          // P2 單擊 ➔ 旋轉 (Rotate)
+          window.Multiplayer.sendAction({ action: 'rotate', dir: 1 });
+          this.lastTapTime = now;
+        }
       }
     }
   }
