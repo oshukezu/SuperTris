@@ -75,47 +75,35 @@
       <div class="nes-copyright">©2026 SUPERTRIS</div>
     </div>
 
-    <!-- 經典 1P / 2P 選單按鈕 (21px Bold) -->
+    <!-- 1P / 2P 遊戲模式選單 (支援方向鍵、單一蘑菇游標、閃爍開局) -->
     <div class="nes-menu">
-      <button class="nes-menu-item" id="play-single-btn">
+      <button class="nes-menu-item active" id="play-single-btn" data-mode="single">
         <span class="nes-cursor">🍄</span>
-        <span data-i18n="play_single">1P player</span>
+        <span class="menu-label">1P player</span>
       </button>
-      <button class="nes-menu-item" id="play-coop-btn">
-        <span class="nes-cursor">🍄</span>
-        <span data-i18n="play_coop">2P player</span>
+      <button class="nes-menu-item" id="play-coop-btn" data-mode="coop">
+        <span class="nes-cursor hidden-cursor">🍄</span>
+        <span class="menu-label">2P player</span>
       </button>
     </div>
 
     <!-- 底部 10 秒 1x4 堆疊消 4 行 Demo 動畫 -->
     <div class="nes-stack-bottom">
       <div class="demo-tetris-grid">
-        <!-- 4 層 9 寬積木牆 (最右側第 10 格空出) -->
+        <!-- 4 排積木牆 (最右留空) -->
         <div class="demo-wall-row r4">
-          <div class="d-cell b-red d-1"></div><div class="d-cell b-gold d-2"></div><div class="d-cell b-blue d-3"></div>
-          <div class="d-cell b-green d-4"></div><div class="d-cell b-red d-5"></div><div class="d-cell b-gold d-6"></div>
-          <div class="d-cell b-blue d-7"></div><div class="d-cell b-green d-8"></div><div class="d-cell b-red d-9"></div>
-          <div class="d-cell empty"></div>
+          <div class="d-cell b-red d-1"></div><div class="d-cell b-gold d-2"></div><div class="d-cell b-blue d-3"></div><div class="d-cell b-green d-4"></div><div class="d-cell b-cyan d-5"></div><div class="d-cell b-red d-6"></div><div class="d-cell b-gold d-7"></div><div class="d-cell b-blue d-8"></div><div class="d-cell b-green d-9"></div><div class="d-cell empty"></div>
         </div>
         <div class="demo-wall-row r3">
-          <div class="d-cell b-gold d-10"></div><div class="d-cell b-blue d-11"></div><div class="d-cell b-green d-12"></div>
-          <div class="d-cell b-red d-13"></div><div class="d-cell b-gold d-14"></div><div class="d-cell b-blue d-15"></div>
-          <div class="d-cell b-green d-16"></div><div class="d-cell b-red d-17"></div><div class="d-cell b-gold d-18"></div>
-          <div class="d-cell empty"></div>
+          <div class="d-cell b-blue d-10"></div><div class="d-cell b-green d-11"></div><div class="d-cell b-cyan d-12"></div><div class="d-cell b-red d-13"></div><div class="d-cell b-gold d-14"></div><div class="d-cell b-blue d-15"></div><div class="d-cell b-green d-16"></div><div class="d-cell b-cyan d-17"></div><div class="d-cell b-red d-18"></div><div class="d-cell empty"></div>
         </div>
         <div class="demo-wall-row r2">
-          <div class="d-cell b-blue d-19"></div><div class="d-cell b-green d-20"></div><div class="d-cell b-red d-21"></div>
-          <div class="d-cell b-gold d-22"></div><div class="d-cell b-blue d-23"></div><div class="d-cell b-green d-24"></div>
-          <div class="d-cell b-red d-25"></div><div class="d-cell b-gold d-26"></div><div class="d-cell b-blue d-27"></div>
-          <div class="d-cell empty"></div>
+          <div class="d-cell b-gold d-19"></div><div class="d-cell b-blue d-20"></div><div class="d-cell b-green d-21"></div><div class="d-cell b-cyan d-22"></div><div class="d-cell b-red d-23"></div><div class="d-cell b-gold d-24"></div><div class="d-cell b-blue d-25"></div><div class="d-cell b-green d-26"></div><div class="d-cell b-cyan d-27"></div><div class="d-cell empty"></div>
         </div>
         <div class="demo-wall-row r1">
-          <div class="d-cell b-green d-28"></div><div class="d-cell b-red d-29"></div><div class="d-cell b-gold d-30"></div>
-          <div class="d-cell b-blue d-31"></div><div class="d-cell b-green d-32"></div><div class="d-cell b-red d-33"></div>
-          <div class="d-cell b-gold d-34"></div><div class="d-cell b-blue d-35"></div><div class="d-cell b-green d-36"></div>
-          <div class="d-cell empty"></div>
+          <div class="d-cell b-green d-28"></div><div class="d-cell b-cyan d-29"></div><div class="d-cell b-red d-30"></div><div class="d-cell b-gold d-31"></div><div class="d-cell b-blue d-32"></div><div class="d-cell b-green d-33"></div><div class="d-cell b-cyan d-34"></div><div class="d-cell b-red d-35"></div><div class="d-cell b-gold d-36"></div><div class="d-cell empty"></div>
         </div>
-        <!-- 1x4 垂直長條方塊 (7.5s 直落插進第 10 格空槽) -->
+        <!-- 1x4 垂直長條方塊：7.5s 掉入，8.8s 消除 -->
         <div class="demo-i-piece">
           <div class="d-cell b-cyan"></div>
           <div class="d-cell b-cyan"></div>
@@ -150,7 +138,7 @@
     <h2 style="color: var(--accent-gold); font-size: 22px; letter-spacing: 2px;">PAUSED</h2>
   </div>
 
-  <!-- 雙人跨裝置配對房間 Modal (產生代碼 / 輸入代碼 一步到位) -->
+  <!-- 雙人跨裝置配對房間 Modal (產生代碼 / 輸入代碼 一步到位 + 握手開局) -->
   <div id="room-modal" class="modal-backdrop hidden">
     <div class="pixel-modal room-modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -162,14 +150,16 @@
       <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
         <div style="font-size: 13px; color: var(--accent-gold); font-weight: bold;" data-i18n="share_code_title">產生代碼</div>
         <div id="display-room-code" style="font-size: 42px; font-weight: bold; letter-spacing: 6px; color: #ffffff; background: #000; padding: 6px 18px; border: 2px solid var(--accent-gold);">8888</div>
-        <div style="font-size: 11px; color: #aaa;" class="pixel-pulse" data-i18n="waiting_partner">等待隊友加入中...</div>
+        <div id="room-status-text" style="font-size: 12px; color: #aaa;" class="pixel-pulse" data-i18n="waiting_partner">等待隊友加入中...</div>
+        <!-- P1 房主專屬發車開局按鈕 (隊友加入後亮起) -->
+        <button id="btn-start-coop" class="pixel-btn pixel-btn-accent hidden" style="width: 100%; padding: 12px; font-size: 14px; font-weight: bold; margin-top: 4px;" data-i18n="start_game_btn">開始遊戲</button>
       </div>
 
       <!-- 分隔字 -->
-      <div style="font-size: 12px; color: #888;" data-i18n="or_divider">或</div>
+      <div id="room-divider" style="font-size: 12px; color: #888;" data-i18n="or_divider">或</div>
 
       <!-- 下半部：輸入代碼 (P2 隊友) - 支援電話純數字鍵盤 -->
-      <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div id="room-join-section" style="display: flex; flex-direction: column; gap: 8px;">
         <div style="font-size: 13px; color: var(--accent-gold); font-weight: bold;" data-i18n="enter_code_title">輸入代碼</div>
         <input type="tel" inputmode="numeric" pattern="[0-9]*" id="join-code-input" class="pixel-input" maxlength="4" placeholder="請輸入代碼" data-i18n-placeholder="enter_code_title" />
         <button class="pixel-btn pixel-btn-accent room-action-btn" id="btn-join-room" data-i18n="join_room_btn">加入房間</button>
@@ -238,6 +228,7 @@
   <script src="js/mario.js"></script>
   <script src="src/piece.js"></script>
   <script src="src/score.js"></script>
+  <script src="src/game_ui.js"></script>
   <script src="src/board.js"></script>
   <script src="src/renderer.js"></script>
   <script src="src/controls.js"></script>

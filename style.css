@@ -247,8 +247,23 @@ body.in-title .active-buffs {
   padding: 8px 0;
   letter-spacing: 1px;
 }
-.nes-cursor { font-size: 22px; }
-.nes-menu-item:active .nes-cursor { transform: scale(1.3); }
+.nes-cursor {
+  font-size: 22px;
+  width: 26px;
+  display: inline-block;
+  text-align: center;
+  visibility: visible;
+}
+.nes-cursor.hidden-cursor {
+  visibility: hidden;
+}
+.nes-menu-item.menu-blinking {
+  animation: nesBlink 0.15s infinite alternate;
+}
+@keyframes nesBlink {
+  0% { opacity: 1; filter: brightness(1); }
+  100% { opacity: 0; filter: brightness(2); }
+}
 
 /* 10 秒 1x4 堆疊消 4 行 Demo 動畫 */
 .nes-stack-bottom {

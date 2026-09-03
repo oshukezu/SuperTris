@@ -1,4 +1,4 @@
-// SuperTris 遊戲主引擎 (全清獎勵、1985瑪利歐動畫、常態消行不震塌、WakeLock)
+// SuperTris 遊戲主引擎 (首頁方向鍵選單、閃爍開局、雙人同方塊鏡像同步、WakeLock)
 class SuperTrisGame {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
@@ -24,12 +24,13 @@ class SuperTrisGame {
     this.lockResets = 0;
     this.maxLockResets = 15;
     this.wakeLock = null;
+    this.selectedMenuIndex = 0;
     this.controls = new window.Controls(this);
-    this.initHUDButtons();
+    window.GameUIHelper.initHUDButtons(this);
+    this.initTitleMenuKeys();
     this.initInitialHUD();
     if (window.Multiplayer) window.Multiplayer.init(this);
   }
-
   initInitialHUD() {
     const highScore = window.Storage ? window.Storage.getHighScore('single') : 0;
     const scoreEl = document.getElementById('hud-score');
@@ -39,7 +40,6 @@ class SuperTrisGame {
     const worldEl = document.getElementById('hud-world');
     if (worldEl) worldEl.textContent = '1-1';
   }
-
   async requestWakeLock() {
     try {
       if ('wakeLock' in navigator && !this.wakeLock) {
@@ -48,44 +48,52 @@ class SuperTrisGame {
       }
     } catch (e) {}
   }
-
   releaseWakeLock() {
     if (this.wakeLock) { this.wakeLock.release().catch(() => {}); this.wakeLock = null; }
   }
-
-  initHUDButtons() {
-    const setDrawer = document.getElementById('set-drawer');
-    document.getElementById('set-menu-btn')?.addEventListener('click', (e) => { e.stopPropagation(); setDrawer?.classList.toggle('hidden'); });
-    document.addEventListener('click', (e) => { if (!e.target.closest('#set-drawer') && !e.target.closest('#set-menu-btn')) setDrawer?.classList.add('hidden'); });
-    document.getElementById('pause-btn')?.addEventListener('click', () => { setDrawer?.classList.add('hidden'); this.togglePause(); });
-    document.getElementById('menu-btn')?.addEventListener('click', () => { setDrawer?.classList.add('hidden'); this.returnToTitle(); });
-    document.getElementById('mute-toggle-btn')?.addEventListener('click', () => {
-      window.SoundEngine.toggleMute();
-      const b = document.getElementById('mute-toggle-btn');
-      if (b) b.textContent = window.SoundEngine.isMuted ? 'SOUND: OFF' : 'SOUND: ON';
+  initTitleMenuKeys() {
+    const items = [document.getElementById('play-single-btn'), document.getElementById('play-coop-btn')];
+    const updateCursor = () => {
+      items.forEach((btn, idx) => {
+        const isSel = idx === this.selectedMenuIndex;
+        btn?.classList.toggle('active', isSel);
+        btn?.querySelector('.nes-cursor')?.classList.toggle('hidden-cursor', !isSel);
+      });
+    };
+    window.addEventListener('keydown', (e) => {
+      if (!document.body.classList.contains('in-title')) return;
+      if (document.getElementById('room-modal') && !document.getElementById('room-modal').classList.contains('hidden')) return;
+      if (e.key === 'ArrowUp' || e.key === 'KeyW' || e.key === 'ArrowDown' || e.key === 'KeyS') {
+        this.selectedMenuIndex = (this.selectedMenuIndex + 1) % 2;
+        updateCursor();
+        window.SoundEngine.playMove();
+      } else if (e.key === 'Enter' || e.key === 'Space') {
+        e.preventDefault();
+        this.confirmMenuSelection(this.selectedMenuIndex === 0 ? 'single' : 'coop');
+      }
     });
-    document.getElementById('lang-toggle-btn')?.addEventListener('click', () => {
-      window.I18N.toggleLanguage();
-      const b = document.getElementById('mute-toggle-btn');
-      if (b) b.textContent = window.SoundEngine.isMuted ? 'SOUND: OFF' : 'SOUND: ON';
-      this.updateRoleBadge();
-    });
-    document.getElementById('leaderboard-btn')?.addEventListener('click', () => { setDrawer?.classList.add('hidden'); window.Leaderboard.show(); });
-    document.getElementById('play-single-btn')?.addEventListener('click', () => this.startNewGame('single'));
-    document.getElementById('btn-play-again')?.addEventListener('click', () => this.startNewGame(this.mode));
-    document.getElementById('btn-back-menu')?.addEventListener('click', () => this.returnToTitle());
-    document.getElementById('btn-submit-score')?.addEventListener('click', () => this.submitGameOverScore());
-    document.getElementById('pause-overlay')?.addEventListener('click', () => {
-      if (this.mode === 'coop' && window.Multiplayer && window.Multiplayer.role === 'guest') return;
-      this.togglePause();
-    });
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) { if (!this.isPaused && !this.isGameOver) this.togglePause(); }
-      else if (!this.isPaused && !this.isGameOver) this.requestWakeLock();
-    });
-    window.addEventListener('blur', () => { if (!this.isPaused && !this.isGameOver) this.togglePause(); });
+    items[0]?.addEventListener('click', () => this.confirmMenuSelection('single'));
+    items[1]?.addEventListener('click', () => this.confirmMenuSelection('coop'));
   }
-
+  confirmMenuSelection(mode) {
+    const targetBtn = mode === 'single' ? document.getElementById('play-single-btn') : document.getElementById('play-coop-btn');
+    if (!targetBtn || targetBtn.classList.contains('menu-blinking')) return;
+    this.selectedMenuIndex = mode === 'single' ? 0 : 1;
+    [document.getElementById('play-single-btn'), document.getElementById('play-coop-btn')].forEach((b, i) => {
+      b?.classList.toggle('active', i === this.selectedMenuIndex);
+      b?.querySelector('.nes-cursor')?.classList.toggle('hidden-cursor', i !== this.selectedMenuIndex);
+    });
+    window.SoundEngine.playIntroBGM();
+    targetBtn.classList.add('menu-blinking');
+    setTimeout(() => {
+      targetBtn.classList.remove('menu-blinking');
+      if (mode === 'single') this.startNewGame('single');
+      else {
+        document.getElementById('room-modal')?.classList.remove('hidden');
+        if (window.Multiplayer) window.Multiplayer.openDirectHosting();
+      }
+    }, 600);
+  }
   updateRoleBadge() {
     const badge = document.getElementById('header-role-badge');
     const pauseBtn = document.getElementById('pause-btn');
@@ -101,7 +109,6 @@ class SuperTrisGame {
       if (pauseBtn) { pauseBtn.style.opacity = '1'; pauseBtn.style.pointerEvents = 'auto'; }
     }
   }
-
   startNewGame(mode = 'single') {
     this.mode = mode;
     this.isGameOver = false;
@@ -121,14 +128,30 @@ class SuperTrisGame {
     document.getElementById('game-main-area')?.classList.remove('hidden');
     document.getElementById('pause-overlay')?.classList.add('hidden');
     this.updateRoleBadge();
-    this.nextPiece = this.bag.next();
-    this.spawnPiece(1);
+    if (this.mode === 'coop' && window.Multiplayer && window.Multiplayer.role === 'guest') {
+      this.p1Piece = null;
+      this.nextPiece = null;
+    } else {
+      this.nextPiece = this.bag.next();
+      this.spawnPiece(1);
+    }
     this.requestWakeLock();
     window.SoundEngine.playIntroBGM();
     this.lastTime = performance.now();
     requestAnimationFrame((t) => this.gameLoop(t));
   }
-
+  applyMirroredPiece(pieceData, nextPieceData) {
+    if (!pieceData) { this.p1Piece = null; return; }
+    if (!this.p1Piece) this.p1Piece = new window.Piece(pieceData.type);
+    this.p1Piece.type = pieceData.type;
+    this.p1Piece.x = pieceData.x;
+    this.p1Piece.y = pieceData.y;
+    this.p1Piece.rotation = pieceData.rotation;
+    this.p1Piece.shape = pieceData.shape;
+    this.p1Piece.isBomb = pieceData.isBomb;
+    this.p1Piece.isQuestion = pieceData.isQuestion;
+    if (nextPieceData) this.nextPiece = nextPieceData;
+  }
   returnToTitle() {
     this.isPaused = true;
     this.lockAccumulator = 0;
@@ -143,7 +166,6 @@ class SuperTrisGame {
     document.getElementById('game-main-area')?.classList.add('hidden');
     document.getElementById('pause-overlay')?.classList.add('hidden');
   }
-
   togglePause() {
     if (this.isGameOver) return;
     if (this.mode === 'coop' && window.Multiplayer && window.Multiplayer.role === 'guest') return;
@@ -152,7 +174,6 @@ class SuperTrisGame {
       window.Multiplayer.sendPauseSync(this.isPaused);
     }
   }
-
   applyPauseSync(isPaused) {
     this.isPaused = isPaused;
     const overlay = document.getElementById('pause-overlay');
@@ -165,7 +186,6 @@ class SuperTrisGame {
       requestAnimationFrame((t) => this.gameLoop(t));
     }
   }
-
   spawnPiece(playerIndex = 1) {
     this.lockAccumulator = 0;
     this.lockResets = 0;
@@ -180,13 +200,14 @@ class SuperTrisGame {
       this.p1Piece = p;
       this.nextPiece = this.bag.next();
     }
+    if (this.mode === 'coop' && window.Multiplayer && window.Multiplayer.role === 'host') {
+      window.Multiplayer.broadcastActivePiece(this.p1Piece, this.nextPiece);
+    }
     if (this.board.isCollision(this.p1Piece.getBlocks())) this.handleLifeLost();
   }
-
   isPieceGrounded() {
     return this.p1Piece ? this.board.isCollision(this.p1Piece.getBlocks(this.p1Piece.x, this.p1Piece.y + 1)) : false;
   }
-
   moveCurrentPiece(dx, dy, playerIndex = 1, isManual = false) {
     const piece = this.p1Piece;
     if (!piece || this.isPaused || this.isGameOver) return false;
@@ -194,6 +215,9 @@ class SuperTrisGame {
     if (!this.board.isCollision(testBlocks)) {
       piece.x += dx;
       piece.y += dy;
+      if (this.mode === 'coop' && window.Multiplayer && window.Multiplayer.role === 'host') {
+        window.Multiplayer.broadcastActivePiece(this.p1Piece, this.nextPiece);
+      }
       if (dx !== 0) {
         window.SoundEngine.playMove();
         if (this.isPieceGrounded() && this.lockResets < this.maxLockResets) {
@@ -208,7 +232,6 @@ class SuperTrisGame {
     }
     return false;
   }
-
   rotateCurrentPiece(dir = 1, playerIndex = 1) {
     const piece = this.p1Piece;
     if (!piece || this.isPaused || this.isGameOver || piece.type === 'Q') return;
@@ -223,6 +246,9 @@ class SuperTrisGame {
         piece.rotation = newRotation;
         piece.x += kx;
         piece.y -= ky;
+        if (this.mode === 'coop' && window.Multiplayer && window.Multiplayer.role === 'host') {
+          window.Multiplayer.broadcastActivePiece(this.p1Piece, this.nextPiece);
+        }
         window.SoundEngine.playRotate();
         if (this.isPieceGrounded() && this.lockResets < this.maxLockResets) {
           this.lockResets++;
@@ -233,14 +259,12 @@ class SuperTrisGame {
       }
     }
   }
-
   hardDrop(playerIndex = 1) {
     if (!this.p1Piece || this.isPaused || this.isGameOver) return;
     while (this.moveCurrentPiece(0, 1, 1, false)) {}
     this.lockCurrentPiece(1);
     window.SoundEngine.playDrop();
   }
-
   lockCurrentPiece(playerIndex = 1) {
     const piece = this.p1Piece;
     if (!piece) return;
@@ -248,7 +272,6 @@ class SuperTrisGame {
     this.lockResets = 0;
     const isStar = window.Mario && window.Mario.activeEffects.starMode;
     const hasBomb = window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0;
-
     if (isStar) {
       this.board.shatterAndDropBlocks(piece);
       window.SoundEngine.playLineClear(1);
@@ -269,7 +292,6 @@ class SuperTrisGame {
     this.checkLinesAndClear(false);
     this.spawnPiece(1);
   }
-
   checkLinesAndClear(allowCascade = false, cascade = 1) {
     const full = this.board.findFullLines();
     if (full.length > 0) {
@@ -299,7 +321,6 @@ class SuperTrisGame {
       this.scoreEngine.addClearedLines(0);
     }
   }
-
   handleLifeLost() {
     this.lockAccumulator = 0;
     window.SoundEngine.playLifeLost();
@@ -311,7 +332,6 @@ class SuperTrisGame {
       this.spawnPiece(1);
     }
   }
-
   async triggerGameOver() {
     this.isGameOver = true;
     this.lockAccumulator = 0;
@@ -329,28 +349,9 @@ class SuperTrisGame {
     if (nameInput) nameInput.value = window.Storage.getPlayerName();
     document.getElementById('game-over-modal')?.classList.remove('hidden');
   }
-
   async submitGameOverScore() {
-    const input = document.getElementById('player-name-input');
-    const name = input ? input.value.trim() : 'Mario';
-    if (!name) return;
-    window.Storage.setPlayerName(name);
-    const btn = document.getElementById('btn-submit-score');
-    if (btn) btn.textContent = window.I18N.t('submitting');
-    await window.SupabaseService.submitScore({
-      nickname: name,
-      score: this.scoreEngine.score,
-      lines_cleared: this.scoreEngine.lines,
-      max_combo: this.scoreEngine.maxCombo,
-      level: this.scoreEngine.level,
-      coins: this.scoreEngine.gems,
-      mode: this.mode,
-      items_used: window.Mario ? window.Mario.itemsUsedCount : {}
-    });
-    if (btn) btn.textContent = window.I18N.t('submitted');
-    setTimeout(() => window.Leaderboard.show(), 400);
+    await window.GameUIHelper.submitScore(this);
   }
-
   gameLoop(time = 0) {
     if (this.isPaused || this.isGameOver) return;
     const dt = time - this.lastTime;
@@ -362,20 +363,19 @@ class SuperTrisGame {
     if (timeEl) timeEl.textContent = `${mins}:${secs}`;
     const worldEl = document.getElementById('hud-world');
     if (worldEl) worldEl.textContent = `1-${Math.min(4, this.scoreEngine.level)}`;
-
-    if (this.isPieceGrounded()) {
-      this.lockAccumulator += dt;
-      if (this.lockAccumulator >= this.lockDelay) this.lockCurrentPiece(1);
-    } else {
-      this.lockAccumulator = 0;
+    if (this.mode !== 'coop' || (window.Multiplayer && window.Multiplayer.role === 'host')) {
+      if (this.isPieceGrounded()) {
+        this.lockAccumulator += dt;
+        if (this.lockAccumulator >= this.lockDelay) this.lockCurrentPiece(1);
+      } else {
+        this.lockAccumulator = 0;
+      }
+      this.dropCounter += dt;
+      if (this.dropCounter > this.scoreEngine.getDropInterval()) {
+        this.moveCurrentPiece(0, 1, 1, false);
+        this.dropCounter = 0;
+      }
     }
-
-    this.dropCounter += dt;
-    if (this.dropCounter > this.scoreEngine.getDropInterval()) {
-      this.moveCurrentPiece(0, 1, 1, false);
-      this.dropCounter = 0;
-    }
-
     if (window.Mario) window.Mario.tickTimers(dt / 1000);
     if (time - this.lastSyncTime > 150) {
       if (window.Multiplayer && window.Multiplayer.role === 'host') {
@@ -394,5 +394,4 @@ class SuperTrisGame {
     requestAnimationFrame((t) => this.gameLoop(t));
   }
 }
-
 window.SuperTrisGame = SuperTrisGame;

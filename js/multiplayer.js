@@ -1,4 +1,4 @@
-// SuperTris 多人連線模組 (即時生成42px代碼、電話數字鍵盤、防自我死鎖)
+// SuperTris 多人連線模組 (P1開局握手、同方塊鏡像同步、電話鍵盤)
 class MultiplayerManager {
   constructor() {
     this.game = null;
@@ -18,6 +18,7 @@ class MultiplayerManager {
     const roomModal = document.getElementById('room-modal');
     const btnClose = document.getElementById('btn-close-room-modal');
     const btnJoin = document.getElementById('btn-join-room');
+    const btnStart = document.getElementById('btn-start-coop');
     const inputCode = document.getElementById('join-code-input');
 
     playCoopBtn?.addEventListener('click', () => {
@@ -37,6 +38,15 @@ class MultiplayerManager {
         this.handleJoinSubmit();
       }
     });
+
+    // P1 房主點擊「開始遊戲」發車
+    btnStart?.addEventListener('click', () => {
+      if (this.role === 'host' && this.isConnected) {
+        this.sendAction({ action: 'start_coop_game' });
+        document.getElementById('room-modal')?.classList.add('hidden');
+        if (this.game) this.game.startNewGame('coop');
+      }
+    });
   }
 
   showError(msg) {
@@ -48,13 +58,20 @@ class MultiplayerManager {
     return String(Math.floor(1000 + Math.random() * 9000));
   }
 
-  // 打開彈窗第 1 毫秒無條件即刻生成 4 位純白代碼 (P1 Host)
   openDirectHosting() {
     this.showError('');
     this.role = 'host';
     this.roomCode = this.generateRoomCode();
     const codeEl = document.getElementById('display-room-code');
     if (codeEl) codeEl.textContent = this.roomCode;
+    const statusEl = document.getElementById('room-status-text');
+    if (statusEl) {
+      statusEl.textContent = window.I18N.t('waiting_partner');
+      statusEl.style.color = '#aaa';
+    }
+    document.getElementById('btn-start-coop')?.classList.add('hidden');
+    document.getElementById('room-join-section')?.classList.remove('hidden');
+    document.getElementById('room-divider')?.classList.remove('hidden');
 
     if (!window.SupabaseService.isAvailable()) {
       this.showError(window.I18N.t('connection_failed'));
@@ -63,7 +80,6 @@ class MultiplayerManager {
     this.subscribeChannel(this.roomCode);
   }
 
-  // 處理點擊或 Enter 加入 (P2 Guest)
   handleJoinSubmit() {
     const inputCode = document.getElementById('join-code-input');
     const code = inputCode ? inputCode.value.trim().replace(/\D/g, '') : '';
@@ -72,17 +88,13 @@ class MultiplayerManager {
       this.showError(window.I18N.t('invalid_room_code'));
       return;
     }
-
-    // 防呆：禁止自己連自己畫面產生的代碼
     if (code === this.roomCode) {
       this.showError(window.I18N.t('invalid_self_code'));
       return;
     }
-
     this.joinTargetRoom(code);
   }
 
-  // 切換為加入指定房間 (P2 Guest)
   async joinTargetRoom(code) {
     this.showError('');
     if (!window.SupabaseService.isAvailable()) {
@@ -92,13 +104,19 @@ class MultiplayerManager {
 
     this.role = 'guest';
     this.roomCode = code;
+    const statusEl = document.getElementById('room-status-text');
+    if (statusEl) {
+      statusEl.textContent = window.I18N.t('waiting_host');
+      statusEl.style.color = '#f1c40f';
+    }
+    document.getElementById('room-join-section')?.classList.add('hidden');
+    document.getElementById('room-divider')?.classList.add('hidden');
     this.subscribeChannel(this.roomCode);
   }
 
   subscribeChannel(code) {
     const client = window.SupabaseService.client;
     if (!client) return;
-
     if (this.channel) client.removeChannel(this.channel);
 
     this.channel = client.channel(`supertris-room-${code}`, {
@@ -110,10 +128,10 @@ class MultiplayerManager {
         const state = this.channel.presenceState();
         const users = Object.keys(state);
         if (users.includes('host') && users.includes('guest')) {
-          this.onBothPlayersReady();
+          this.onBothPlayersConnected();
         }
       })
-      .on('presence', { event: 'leave' }, ({ key }) => {
+      .on('presence', { event: 'leave' }, () => {
         if (this.isConnected) {
           if (window.Mario) window.Mario.showToast(window.I18N.t('coop_partner_left'));
           this.leaveRoom();
@@ -129,11 +147,22 @@ class MultiplayerManager {
       });
   }
 
-  onBothPlayersReady() {
+  onBothPlayersConnected() {
     this.isConnected = true;
-    document.getElementById('room-modal')?.classList.add('hidden');
-    if (this.game) {
-      this.game.startNewGame('coop');
+    const statusEl = document.getElementById('room-status-text');
+    if (this.role === 'host') {
+      if (statusEl) {
+        statusEl.textContent = window.I18N.t('partner_connected');
+        statusEl.style.color = '#2ecc71';
+      }
+      document.getElementById('btn-start-coop')?.classList.remove('hidden');
+      document.getElementById('room-join-section')?.classList.add('hidden');
+      document.getElementById('room-divider')?.classList.add('hidden');
+    } else {
+      if (statusEl) {
+        statusEl.textContent = window.I18N.t('waiting_host');
+        statusEl.style.color = '#f1c40f';
+      }
     }
   }
 
@@ -154,6 +183,12 @@ class MultiplayerManager {
   handleRemoteAction(payload) {
     if (!this.game || !this.isConnected) return;
 
+    if (payload.action === 'start_coop_game') {
+      document.getElementById('room-modal')?.classList.add('hidden');
+      this.game.startNewGame('coop');
+      return;
+    }
+
     if (payload.action === 'sync_pause') {
       this.game.applyPauseSync(payload.isPaused);
       return;
@@ -163,6 +198,10 @@ class MultiplayerManager {
       if (payload.action === 'rotate') this.game.rotateCurrentPiece(payload.dir || 1, 2);
       if (payload.action === 'soft_drop') this.game.moveCurrentPiece(0, 1, 2, true);
     } else {
+      // P2 鏡像接收 P1 的當前方塊與下一塊
+      if (payload.action === 'sync_piece') {
+        this.game.applyMirroredPiece(payload.piece, payload.nextPiece);
+      }
       if (payload.action === 'sync_state') {
         this.game.scoreEngine.score = payload.score;
         this.game.scoreEngine.lines = payload.lines;
@@ -171,6 +210,24 @@ class MultiplayerManager {
         this.game.scoreEngine.lives = payload.lives;
         this.game.board.grid = payload.grid;
       }
+    }
+  }
+
+  broadcastActivePiece(piece, nextPiece) {
+    if (this.role === 'host') {
+      this.sendAction({
+        action: 'sync_piece',
+        piece: piece ? {
+          type: piece.type,
+          x: piece.x,
+          y: piece.y,
+          rotation: piece.rotation,
+          shape: piece.shape,
+          isBomb: piece.isBomb || false,
+          isQuestion: piece.isQuestion || false
+        } : null,
+        nextPiece: nextPiece ? { type: nextPiece.type, shape: nextPiece.shape } : null
+      });
     }
   }
 
