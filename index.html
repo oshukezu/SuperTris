@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
   <title>SuperTris — 俄羅斯方塊 × 超級瑪利歐</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -34,17 +34,17 @@
 
     <div class="title-footer">
       <p data-i18n="controls_kb_p1">電腦 (P1): WASD/方向鍵, Space 快速落地, P 暫停</p>
-      <p data-i18n="controls_kb_p2" style="margin-top:4px;">雙人 (P2): 方向鍵 ←↓→ 移動, ↑ 旋轉, Enter 落地</p>
+      <p data-i18n="controls_kb_p2" style="margin-top:4px;">手機: 左右滑動移動，下滑加速軟落，單擊螢幕旋轉</p>
     </div>
   </section>
 
-  <!-- 遊戲主畫面 (HUD + Canvas) -->
+  <!-- 遊戲主畫面 (HUD + Canvas + 全螢幕手勢層) -->
   <main id="hud" class="hidden" style="width: 100%; max-width: 480px;">
     <!-- 道具 Buff 狀態列 -->
     <div id="active-powerups" class="active-buffs" style="min-height: 20px; margin-bottom: 6px;"></div>
 
     <!-- 遊戲佈局：中間 Canvas + 右側 大型資訊方框 -->
-    <div class="game-layout">
+    <div class="game-layout" id="touch-gesture-area">
       <!-- 左側 操作控制按鈕區 -->
       <aside class="side-panel">
         <button class="pixel-btn" id="pause-btn" data-i18n="pause" style="padding: 10px 6px;">暫停</button>
@@ -100,24 +100,33 @@
         </div>
       </aside>
     </div>
-
-    <!-- 手機 SVG D-Pad 與操作按鈕 -->
-    <div id="mobile-controls" class="mobile-controls hidden">
-      <div class="dpad-container">
-        <svg id="dpad" viewBox="0 0 160 160" width="150" height="150" aria-hidden="true">
-          <path fill="#2b2b3d" stroke="#000" stroke-width="4" stroke-linejoin="round" d="M0 48 H160 V112 H112 V160 H48 V112 H0 Z" />
-          <circle cx="80" cy="80" r="18" fill="#1e1e2f" stroke="#000" stroke-width="3" />
-        </svg>
-      </div>
-      <div class="action-buttons">
-        <div class="btn-row">
-          <button class="pixel-btn round-btn pixel-btn-accent" id="btn-a">A</button>
-          <button class="pixel-btn round-btn" id="btn-pause-touch">⏸</button>
-        </div>
-        <button class="pixel-btn" id="btn-drop" style="width: 100%; padding: 8px 0;">DROP ⬇</button>
-      </div>
-    </div>
   </main>
+
+  <!-- 雙人跨裝置配對房間 Modal -->
+  <div id="room-modal" class="modal-backdrop hidden">
+    <div class="pixel-modal">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" data-i18n="room_title">雙人跨機連線合作</h2>
+        <button class="pixel-btn pixel-btn-red" id="btn-close-room-modal" style="padding: 2px 6px;">X</button>
+      </div>
+
+      <div id="room-setup-view" style="display: flex; flex-direction: column; gap: 12px;">
+        <button class="pixel-btn pixel-btn-accent menu-btn" id="btn-create-room" data-i18n="create_room">建立新房間 (P1 舵手)</button>
+        <div style="font-size: 10px; color: #888;">— OR —</div>
+        <input type="text" id="join-code-input" class="pixel-input" maxlength="4" placeholder="請輸入 4 位房間碼" data-i18n-placeholder="enter_room_code" />
+        <button class="pixel-btn menu-btn" id="btn-join-room" data-i18n="join_room">加入房間 (P2 引擎)</button>
+      </div>
+
+      <div id="room-waiting-view" class="hidden" style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+        <div style="font-size: 11px; color: var(--accent-gold);" data-i18n="your_room_code">房間代碼</div>
+        <div id="display-room-code" style="font-size: 28px; letter-spacing: 4px; color: #fff; background: #000; padding: 6px 16px; border: 2px solid var(--accent-gold);">----</div>
+        <div id="room-role-hint" style="font-size: 10px; color: #2ecc71; line-height: 1.5;"></div>
+        <div style="font-size: 10px; color: #aaa;" class="pixel-pulse" data-i18n="waiting_partner">等待隊友加入中...</div>
+      </div>
+
+      <div id="room-error-msg" style="color: #e74c3c; font-size: 10px;"></div>
+    </div>
+  </div>
 
   <!-- Game Over 結算 Modal -->
   <div id="game-over-modal" class="modal-backdrop hidden">
@@ -169,6 +178,7 @@
   <script src="js/storage.js"></script>
   <script src="js/supabase-service.js"></script>
   <script src="js/leaderboard.js"></script>
+  <script src="js/multiplayer.js"></script>
   <script src="js/mario.js"></script>
   <script src="src/piece.js"></script>
   <script src="src/score.js"></script>

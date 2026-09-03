@@ -13,7 +13,7 @@ class SuperTrisGame {
     this.bag = new window.RandomBag();
     this.renderer = new window.Renderer(this.canvas, this.nextCanvas, this.cellSize);
 
-    this.mode = 'single';
+    this.mode = 'single'; // 'single' | 'coop'
     this.p1Piece = null;
     this.p2Piece = null;
     this.nextPiece = null;
@@ -22,10 +22,15 @@ class SuperTrisGame {
     this.isGameOver = false;
     this.dropCounter = 0;
     this.lastTime = 0;
+    this.lastSyncTime = 0;
 
     this.controls = new window.Controls(this);
     this.initHUDButtons();
     this.initVisibilityListener();
+
+    if (window.Multiplayer) {
+      window.Multiplayer.init(this);
+    }
   }
 
   initHUDButtons() {
@@ -34,14 +39,12 @@ class SuperTrisGame {
     document.getElementById('mute-toggle-btn')?.addEventListener('click', () => window.SoundEngine.toggleMute());
     document.getElementById('lang-toggle-btn')?.addEventListener('click', () => window.I18N.toggleLanguage());
     document.getElementById('play-single-btn')?.addEventListener('click', () => this.startNewGame('single'));
-    document.getElementById('play-coop-btn')?.addEventListener('click', () => this.startNewGame('coop'));
     document.getElementById('btn-play-again')?.addEventListener('click', () => this.restartGame());
     document.getElementById('btn-back-menu')?.addEventListener('click', () => this.returnToTitle());
     document.getElementById('btn-submit-score')?.addEventListener('click', () => this.submitGameOverScore());
     document.getElementById('pause-overlay')?.addEventListener('click', () => this.togglePause());
   }
 
-  // 監聽頁面切換 / 最小化 / 手機來電自動暫停 (Page Visibility API)
   initVisibilityListener() {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && !this.isPaused && !this.isGameOver) {
@@ -70,7 +73,6 @@ class SuperTrisGame {
 
     this.nextPiece = this.bag.next();
     this.spawnPiece(1);
-    if (this.mode === 'coop') this.spawnPiece(2);
 
     window.SoundEngine.playIntroBGM();
     this.lastTime = performance.now();
@@ -83,6 +85,9 @@ class SuperTrisGame {
 
   returnToTitle() {
     this.isPaused = true;
+    if (window.Multiplayer && window.Multiplayer.isConnected) {
+      window.Multiplayer.leaveRoom();
+    }
     document.getElementById('title-screen')?.classList.remove('hidden');
     document.getElementById('game-over-modal')?.classList.add('hidden');
     document.getElementById('hud')?.classList.add('hidden');
@@ -101,24 +106,20 @@ class SuperTrisGame {
 
   spawnPiece(playerIndex = 1) {
     let p = this.nextPiece || this.bag.next();
-    p.playerIndex = playerIndex;
-    p.x = playerIndex === 2 ? 6 : 3;
+    p.playerIndex = 1; // 雙人同控一塊
+    p.x = 3;
 
     if (this.board.isCollision(p.getBlocks())) {
       this.handleLifeLost();
       return;
     }
 
-    if (playerIndex === 1) {
-      this.p1Piece = p;
-      this.nextPiece = this.bag.next();
-    } else {
-      this.p2Piece = p;
-    }
+    this.p1Piece = p;
+    this.nextPiece = this.bag.next();
   }
 
   moveCurrentPiece(dx, dy, playerIndex = 1) {
-    const piece = playerIndex === 1 ? this.p1Piece : this.p2Piece;
+    const piece = this.p1Piece;
     if (!piece || this.isPaused || this.isGameOver) return;
 
     const testBlocks = piece.getBlocks(piece.x + dx, piece.y + dy);
@@ -128,13 +129,13 @@ class SuperTrisGame {
       if (dx !== 0) window.SoundEngine.playMove();
       return true;
     } else if (dy > 0) {
-      this.lockCurrentPiece(playerIndex);
+      this.lockCurrentPiece(1);
     }
     return false;
   }
 
   rotateCurrentPiece(dir = 1, playerIndex = 1) {
-    const piece = playerIndex === 1 ? this.p1Piece : this.p2Piece;
+    const piece = this.p1Piece;
     if (!piece || this.isPaused || this.isGameOver) return;
     if (piece.type === 'Q') return;
 
@@ -158,23 +159,22 @@ class SuperTrisGame {
   }
 
   hardDrop(playerIndex = 1) {
-    const piece = playerIndex === 1 ? this.p1Piece : this.p2Piece;
+    const piece = this.p1Piece;
     if (!piece || this.isPaused || this.isGameOver) return;
 
-    while (this.moveCurrentPiece(0, 1, playerIndex)) {
+    while (this.moveCurrentPiece(0, 1, 1)) {
       // 墜落到底
     }
     window.SoundEngine.playDrop();
   }
 
   lockCurrentPiece(playerIndex = 1) {
-    const piece = playerIndex === 1 ? this.p1Piece : this.p2Piece;
+    const piece = this.p1Piece;
     if (!piece) return;
 
     const isStar = window.Mario && window.Mario.activeEffects.starMode;
     const hasBomb = window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0;
 
-    // 1. 若處於雙主動特效或無敵星狀態：無敵星優先貫穿消除，若有炸彈同步引爆
     if (isStar || hasBomb) {
       if (isStar) {
         this.board.laserClearDown(piece.getBlocks());
@@ -185,26 +185,20 @@ class SuperTrisGame {
         window.SoundEngine.playExplosion();
       }
       this.checkCascadeLineClears();
-      this.spawnPiece(playerIndex);
+      this.spawnPiece(1);
       return;
     }
 
-    // 2. 一般鎖定至棋盤
     this.board.lockPiece(piece);
 
-    // 3. 落地後，有機率讓場地內既有磚塊隨機轉換為問號磚
     if (window.Mario) {
       window.Mario.mutateRandomCellToQuestion(this.board);
     }
 
-    // 4. 檢查滿行消除與問號磚道具觸發
     this.checkCascadeLineClears();
-
-    // 5. 生成下一塊
-    this.spawnPiece(playerIndex);
+    this.spawnPiece(1);
   }
 
-  // 檢查滿行消除 (支援重力塌陷後的連鎖消行)
   checkCascadeLineClears() {
     const fullLines = this.board.findFullLines();
     if (fullLines.length > 0) {
@@ -235,13 +229,11 @@ class SuperTrisGame {
       this.triggerGameOver();
     } else {
       this.board.clearHalfBoard();
-      // 扣命重生時「清空所有活躍特效」
       if (window.Mario) {
         window.Mario.reset();
         window.Mario.showToast(window.I18N.t('life_lost'));
       }
       this.spawnPiece(1);
-      if (this.mode === 'coop') this.spawnPiece(2);
     }
   }
 
@@ -317,13 +309,27 @@ class SuperTrisGame {
 
     if (this.dropCounter > dropInterval) {
       this.moveCurrentPiece(0, 1, 1);
-      if (this.mode === 'coop') this.moveCurrentPiece(0, 1, 2);
       this.dropCounter = 0;
     }
 
     if (window.Mario) window.Mario.tickTimers(dt / 1000);
 
-    this.renderer.render(this.board, this.p1Piece, this.p2Piece, this.nextPiece, this.mode);
+    // 房主定期廣播盤面權威狀態 (每 150ms)
+    if (time - this.lastSyncTime > 150) {
+      if (window.Multiplayer && window.Multiplayer.role === 'host') {
+        window.Multiplayer.broadcastState({
+          score: this.scoreEngine.score,
+          lines: this.scoreEngine.lines,
+          level: this.scoreEngine.level,
+          coins: this.scoreEngine.coins,
+          lives: this.scoreEngine.lives,
+          grid: this.board.grid
+        });
+      }
+      this.lastSyncTime = time;
+    }
+
+    this.renderer.render(this.board, this.p1Piece, null, this.nextPiece, this.mode);
     requestAnimationFrame((t) => this.gameLoop(t));
   }
 }

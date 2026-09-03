@@ -18,7 +18,6 @@ const I18N = {
       lives: 'UP 命數',
       combo: '連擊',
       next: '下一塊',
-      hold: '暫存',
       pause: '暫停',
       resume: '繼續',
       restart: '重新開始',
@@ -40,15 +39,28 @@ const I18N = {
       single_rank: '單人榜',
       coop_rank: '雙人榜',
       close: '關閉',
-      item_red_mushroom: '🍄 紅蘑菇！分數 ×2 (30秒)',
+      item_red_mushroom: '🍄 紅蘑菇！分數 ×2 (+30秒)',
       item_green_mushroom: '🍄 綠蘑菇！UP +1 命',
       item_fire_flower: '🌸 火焰花！下 5 塊引爆炸彈',
       item_super_star: '⭐ 無敵星星！15秒穿透消除',
       coin_100_bonus: '🪙 收集 100 枚金幣！獲得 1UP！',
       life_lost: '💔 失去 1 條命！下半場地清除重整！',
-      controls_kb_p1: '電腦 (P1): WASD / 方向鍵移動，↑/Space 快速落地，C 暫存，P 暫停',
-      controls_kb_p2: '雙人 (P2): 方向鍵 ←↓→ 移動，↑ 旋轉，Enter/↓快速落地',
-      portrait_warning: '⚠️ 請轉為直式直向遊玩（禁止橫向操作）'
+      controls_kb_p1: '電腦 (P1): WASD/方向鍵移動，Space 快速落地，P 暫停',
+      controls_kb_p2: '手機: 左右滑動移動，下滑加速軟落，單擊螢幕旋轉',
+      portrait_warning: '⚠️ 請轉為直向模式遊玩（禁止橫向操作）',
+      // 連線配對新增字串
+      room_title: '雙人跨機連線合作',
+      create_room: '建立新房間 (P1 舵手)',
+      join_room: '加入房間 (P2 引擎)',
+      enter_room_code: '請輸入 4 位房間碼',
+      your_room_code: '房間代碼',
+      waiting_partner: '等待隊友加入中...',
+      room_p1_hint: '你是【P1 舵手】：負責掌控方塊水平左右移動！',
+      room_p2_hint: '你是【P2 引擎】：負責單擊旋轉與下滑加速！',
+      coop_partner_left: '隊友已中途斷線或離開房間',
+      invalid_room_code: '請輸入正確的 4 碼數字房間代號',
+      connection_failed: '連線伺服器失敗，請確認網路或 Supabase 設定',
+      connecting: '連線中...'
     },
     'en': {
       title: 'SuperTris — Tetris × Super Mario',
@@ -64,7 +76,6 @@ const I18N = {
       lives: 'Lives',
       combo: 'Combo',
       next: 'Next',
-      hold: 'Hold',
       pause: 'Pause',
       resume: 'Resume',
       restart: 'Restart',
@@ -86,15 +97,28 @@ const I18N = {
       single_rank: 'Solo',
       coop_rank: 'Co-op',
       close: 'Close',
-      item_red_mushroom: '🍄 Red Mushroom! Score ×2 (30s)',
+      item_red_mushroom: '🍄 Red Mushroom! Score ×2 (+30s)',
       item_green_mushroom: '🍄 Green Mushroom! 1UP!',
       item_fire_flower: '🌸 Fire Flower! Next 5 drops bomb tiles',
       item_super_star: '⭐ Super Star! 15s Laser Clear',
       coin_100_bonus: '🪙 100 Coins collected! 1UP!',
       life_lost: '💔 Life Lost! Half board cleared!',
-      controls_kb_p1: 'PC (P1): WASD / Arrows to move, Space Hard Drop, C Hold, P Pause',
-      controls_kb_p2: 'Co-op (P2): Arrows to move, Up rotate, Down drop',
-      portrait_warning: '⚠️ Please rotate device to Portrait Mode (Landscape locked)'
+      controls_kb_p1: 'PC (P1): WASD / Arrows to move, Space Hard Drop, P Pause',
+      controls_kb_p2: 'Mobile: Swipe left/right to move, Swipe down to drop, Tap to rotate',
+      portrait_warning: '⚠️ Please rotate device to Portrait Mode (Landscape locked)',
+      // Multiplayer strings
+      room_title: 'Cross-Device Co-op',
+      create_room: 'Create Room (P1 Steerer)',
+      join_room: 'Join Room (P2 Engine)',
+      enter_room_code: 'Enter 4-digit room code',
+      your_room_code: 'ROOM CODE',
+      waiting_partner: 'Waiting for partner...',
+      room_p1_hint: 'You are [P1 Steerer]: Responsible for Horizontal Movement!',
+      room_p2_hint: 'You are [P2 Engine]: Responsible for Rotation & Fast Drop!',
+      coop_partner_left: 'Partner disconnected or left the room',
+      invalid_room_code: 'Please enter a valid 4-digit code',
+      connection_failed: 'Connection failed, check Supabase config',
+      connecting: 'Connecting...'
     }
   },
 
@@ -110,7 +134,8 @@ const I18N = {
   },
 
   t(key, params = {}) {
-    let str = this.translations[this.currentLang][key] || this.translations['en'][key] || key;
+    let str = (this.translations[this.currentLang] && this.translations[this.currentLang][key]) ||
+              (this.translations['en'] && this.translations['en'][key]) || key;
     for (const [k, v] of Object.entries(params)) {
       str = str.replace(`{${k}}`, v);
     }
