@@ -1,4 +1,4 @@
-// SuperTris 畫面渲染模組 (Renderer Module) - 適配 34px 大單格與 💥 炸彈方塊
+// SuperTris 畫面渲染模組 (Renderer Module) - 適配 34px 大單格、💥 炸彈與 ⭐ 星星方塊
 class Renderer {
   constructor(canvas, nextCanvas, cellSize = 34) {
     this.canvas = canvas;
@@ -10,9 +10,9 @@ class Renderer {
     this.rows = 20;
   }
 
-  drawBrick(ctx, x, y, theme, isQuestion = false, playerIndex = 1, isBomb = false) {
+  drawBrick(ctx, x, y, theme, isQuestion = false, playerIndex = 1, isBomb = false, isStar = false) {
     const size = this.cellSize;
-    const mainColor = (isBomb || isQuestion) ? theme.question : (playerIndex === 2 ? '#3498db' : theme.main);
+    const mainColor = (isBomb || isQuestion || isStar) ? theme.question : (playerIndex === 2 ? '#3498db' : theme.main);
     const darkColor = theme.dark;
     const lightColor = theme.highlight;
 
@@ -27,6 +27,10 @@ class Renderer {
       ctx.font = '22px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('💥', x + size / 2, y + size / 2 + 8);
+    } else if (isStar) {
+      ctx.font = '20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⭐', x + size / 2, y + size / 2 + 7);
     } else if (isQuestion) {
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 20px "Cubic 11", "Press Start 2P", monospace';
@@ -45,7 +49,7 @@ class Renderer {
     }
   }
 
-  drawGhostBlock(ctx, x, y, theme, isBomb = false) {
+  drawGhostBlock(ctx, x, y, theme, isBomb = false, isStar = false) {
     const size = this.cellSize;
     ctx.strokeStyle = theme.highlight;
     ctx.lineWidth = 2;
@@ -56,10 +60,14 @@ class Renderer {
       ctx.font = '16px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('💥', x + size / 2, y + size / 2 + 6);
+    } else if (isStar) {
+      ctx.font = '15px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⭐', x + size / 2, y + size / 2 + 5);
     }
   }
 
-  renderSidePreview(ctx, piece, theme) {
+  renderSidePreview(ctx, piece, theme, isStar = false) {
     if (!ctx) return;
     ctx.fillStyle = '#0f0f1b';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -71,13 +79,14 @@ class Renderer {
     const offsetY = (ctx.canvas.height - piece.shape.length * miniSize) / 2;
 
     blocks.forEach(b => {
-      ctx.fillStyle = (piece.isBomb || piece.isQuestion) ? theme.question : theme.main;
+      ctx.fillStyle = (piece.isBomb || piece.isQuestion || isStar) ? theme.question : theme.main;
       ctx.fillRect(offsetX + b.x * miniSize, offsetY + b.y * miniSize, miniSize - 1, miniSize - 1);
     });
   }
 
   render(board, p1Piece, p2Piece, nextPiece, mode) {
     const theme = board.getCurrentTheme();
+    const isStarActive = Boolean(window.Mario && window.Mario.activeEffects.starMode);
 
     this.ctx.fillStyle = '#0f0f1b';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -86,7 +95,7 @@ class Renderer {
       for (let c = 0; c < this.cols; c++) {
         const cell = board.grid[r][c];
         if (cell !== null) {
-          this.drawBrick(this.ctx, c * this.cellSize, r * this.cellSize, theme, cell.isQuestion, cell.playerIndex, cell.isBomb);
+          this.drawBrick(this.ctx, c * this.cellSize, r * this.cellSize, theme, cell.isQuestion, cell.playerIndex, cell.isBomb, false);
         }
       }
     }
@@ -97,21 +106,21 @@ class Renderer {
         ghostY++;
       }
       p1Piece.getBlocks(p1Piece.x, ghostY).forEach(b => {
-        this.drawGhostBlock(this.ctx, b.x * this.cellSize, b.y * this.cellSize, theme, p1Piece.isBomb);
+        this.drawGhostBlock(this.ctx, b.x * this.cellSize, b.y * this.cellSize, theme, p1Piece.isBomb, isStarActive);
       });
 
       p1Piece.getBlocks().forEach(b => {
-        this.drawBrick(this.ctx, b.x * this.cellSize, b.y * this.cellSize, theme, b.isQuestion, 1, p1Piece.isBomb);
+        this.drawBrick(this.ctx, b.x * this.cellSize, b.y * this.cellSize, theme, b.isQuestion, 1, p1Piece.isBomb, isStarActive);
       });
     }
 
     if (mode === 'coop' && p2Piece) {
       p2Piece.getBlocks().forEach(b => {
-        this.drawBrick(this.ctx, b.x * this.cellSize, b.y * this.cellSize, theme, b.isQuestion, 2, p2Piece.isBomb);
+        this.drawBrick(this.ctx, b.x * this.cellSize, b.y * this.cellSize, theme, b.isQuestion, 2, p2Piece.isBomb, isStarActive);
       });
     }
 
-    this.renderSidePreview(this.nextCtx, nextPiece, theme);
+    this.renderSidePreview(this.nextCtx, nextPiece, theme, isStarActive);
   }
 }
 

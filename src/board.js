@@ -1,62 +1,26 @@
-// SuperTris 棋盤管理、色階切換、垂直重力塌陷與十字爆破 (Board Module)
-
-const THEME_PHASES = {
-  SAFE: {
-    main: '#8B3A1A',
-    highlight: '#C46B3A',
-    dark: '#3D1A0A',
-    question: '#E8A020',
-    special: '#4A7A3A'
-  },
-  WARNING: {
-    main: '#7A4A2A',
-    highlight: '#A06840',
-    dark: '#2A1000',
-    question: '#E07020',
-    special: '#5C8A3A'
-  },
-  CRITICAL: {
-    main: '#2A6A9A',
-    highlight: '#4A9AD0',
-    dark: '#0D2A40',
-    question: '#40C0E0',
-    special: '#3A9A6A'
-  }
-};
-
+// SuperTris 棋盤管理模組 (Matrix、消行、十字爆破、重力塌陷、星星解體重力落砂)
 class Board {
   constructor(cols = 10, rows = 20) {
     this.cols = cols;
     this.rows = rows;
-    this.grid = this.createEmptyGrid();
+    this.grid = this.createGrid();
+    this.themes = {
+      underground: { main: '#34495e', dark: '#1a252f', highlight: '#7f8c8d', question: '#f1c40f' },
+      castle: { main: '#c0392b', dark: '#78281f', highlight: '#e74c3c', question: '#f39c12' },
+      classic: { main: '#c84c0c', dark: '#3d1a0a', highlight: '#fc9838', question: '#fce4a6' }
+    };
   }
 
-  createEmptyGrid() {
+  createGrid() {
     return Array.from({ length: this.rows }, () => Array(this.cols).fill(null));
   }
 
   reset() {
-    this.grid = this.createEmptyGrid();
-  }
-
-  getStackHeight() {
-    for (let r = 0; r < this.rows; r++) {
-      if (this.grid[r].some(cell => cell !== null)) {
-        return this.rows - r;
-      }
-    }
-    return 0;
+    this.grid = this.createGrid();
   }
 
   getCurrentTheme() {
-    const height = this.getStackHeight();
-    const ratio = height / this.rows;
-    if (ratio >= 0.8 || (this.rows - height) <= 4) {
-      return THEME_PHASES.CRITICAL;
-    } else if (ratio >= 0.5) {
-      return THEME_PHASES.WARNING;
-    }
-    return THEME_PHASES.SAFE;
+    return this.themes.classic;
   }
 
   isCollision(blocks) {
@@ -73,101 +37,99 @@ class Board {
       if (b.y >= 0 && b.y < this.rows && b.x >= 0 && b.x < this.cols) {
         this.grid[b.y][b.x] = {
           type: piece.type,
-          isQuestion: b.isQuestion,
-          playerIndex: b.playerIndex
+          isQuestion: b.isQuestion || false,
+          isBomb: piece.isBomb || false,
+          playerIndex: piece.playerIndex || 1
         };
       }
     });
   }
 
+  // ⭐ 無敵星星：將方塊解體為 4 個獨立 1x1 方塊，各自垂直向下掉落填補底層凹洞
+  shatterAndDropBlocks(piece) {
+    const blocks = piece.getBlocks();
+    // 由下至上排序處理 (y 大的先落底)
+    blocks.sort((a, b) => b.y - a.y);
+
+    blocks.forEach(b => {
+      if (b.x < 0 || b.x >= this.cols) return;
+      let targetY = Math.max(0, b.y);
+
+      // 沿著自身欄位獨立向下垂直尋找最深可落位坐標
+      while (targetY + 1 < this.rows && this.grid[targetY + 1][b.x] === null) {
+        targetY++;
+      }
+
+      if (targetY >= 0 && targetY < this.rows) {
+        this.grid[targetY][b.x] = {
+          type: piece.type,
+          isQuestion: b.isQuestion || false,
+          isBomb: false,
+          playerIndex: piece.playerIndex || 1
+        };
+      }
+    });
+  }
+
+  explodeCross(cx, cy) {
+    const offsets = [[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0]];
+    offsets.forEach(([dx, dy]) => {
+      const x = cx + dx;
+      const y = cy + dy;
+      if (x >= 0 && x < this.cols && y >= 0 && y < this.rows) {
+        this.grid[y][x] = null;
+      }
+    });
+  }
+
+  clearHalfBoard() {
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < this.cols; c++) this.grid[r][c] = null;
+    }
+    for (let r = 10; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        if (Math.random() < 0.5) this.grid[r][c] = null;
+      }
+    }
+  }
+
   findFullLines() {
     const full = [];
-    for (let r = 0; r < this.rows; r++) {
-      if (this.grid[r].every(cell => cell !== null)) {
-        full.push(r);
-      }
+    for (let r = this.rows - 1; r >= 0; r--) {
+      if (this.grid[r].every(cell => cell !== null)) full.push(r);
     }
     return full;
   }
 
   removeLines(lines) {
-    let questionBlockCount = 0;
-    lines.forEach(lineIdx => {
-      this.grid[lineIdx].forEach(cell => {
-        if (cell && cell.isQuestion) {
-          questionBlockCount++;
-        }
+    let questionCount = 0;
+    lines.forEach(r => {
+      this.grid[r].forEach(cell => {
+        if (cell && cell.isQuestion) questionCount++;
       });
-      this.grid.splice(lineIdx, 1);
+      this.grid.splice(r, 1);
       this.grid.unshift(Array(this.cols).fill(null));
     });
-    return questionBlockCount;
+    return questionCount;
   }
 
-  clearHalfBoard() {
-    const startRow = Math.floor(this.rows / 2);
-    for (let r = startRow; r < this.rows; r++) {
-      this.grid[r] = Array(this.cols).fill(null);
-    }
-  }
-
-  // 十字爆破（Cross Blast - 落點中心 + 上下左右各1格，共5格）
-  explodeCross(cx, cy) {
-    let destroyed = 0;
-    const targets = [
-      { r: cy, c: cx },
-      { r: cy - 1, c: cx },
-      { r: cy + 1, c: cx },
-      { r: cy, c: cx - 1 },
-      { r: cy, c: cx + 1 }
-    ];
-
-    targets.forEach(t => {
-      if (t.r >= 0 && t.r < this.rows && t.c >= 0 && t.c < this.cols) {
-        if (this.grid[t.r][t.c] !== null) {
-          this.grid[t.r][t.c] = null;
-          destroyed++;
-        }
-      }
-    });
-
-    this.applyGravity();
-    return destroyed;
-  }
-
-  // 垂直重力塌陷演算法
   applyGravity() {
+    let moved = false;
     for (let c = 0; c < this.cols; c++) {
-      const colBlocks = [];
-      for (let r = 0; r < this.rows; r++) {
-        if (this.grid[r][c] !== null) {
-          colBlocks.push(this.grid[r][c]);
-        }
-      }
+      let writeRow = this.rows - 1;
       for (let r = this.rows - 1; r >= 0; r--) {
-        if (colBlocks.length > 0) {
-          this.grid[r][c] = colBlocks.pop();
-        } else {
-          this.grid[r][c] = null;
+        if (this.grid[r][c] !== null) {
+          if (writeRow !== r) {
+            this.grid[writeRow][c] = this.grid[r][c];
+            this.grid[r][c] = null;
+            moved = true;
+          }
+          writeRow--;
         }
       }
     }
-  }
-
-  laserClearDown(blocks) {
-    let count = 0;
-    blocks.forEach(b => {
-      for (let r = Math.max(0, b.y); r < this.rows; r++) {
-        if (this.grid[r][b.x] !== null) {
-          this.grid[r][b.x] = null;
-          count++;
-        }
-      }
-    });
-    this.applyGravity();
-    return count;
+    return moved;
   }
 }
 
 window.Board = Board;
-window.THEME_PHASES = THEME_PHASES;

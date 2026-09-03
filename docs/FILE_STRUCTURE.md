@@ -17,9 +17,9 @@ SuperTris/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置
 ├── src/                    # 遊戲核心引擎模組 (上限 400 行/檔)
-│   ├── tetris.js           # in-title class切換、TIME計時器、雙層HUD同步、💥炸彈 (391行)
-│   ├── renderer.js         # 畫面繪製、34px像素大磚塊、💥炸彈圖示、置頂迷你 Next (118行)
-│   ├── board.js            # 棋盤 Matrix、消行判定、十字爆破、重力塌陷 (173行)
+│   ├── tetris.js           # in-title class切換、TIME計時器、💥炸彈、⭐星星重力落砂 (386行)
+│   ├── renderer.js         # 畫面繪製、34px像素大磚塊、💥炸彈、⭐星星方塊繪製 (127行)
+│   ├── board.js            # 棋盤 Matrix、消行、十字爆破、⭐星星解體落砂演算法 (135行)
 │   ├── piece.js            # Tetromino 定義、1x1問號/炸彈方塊支援、SRS (157行)
 │   ├── score.js            # 計分、Gem寶石系統、連鎖階梯倍率、99命數上限 (122行)
 │   └── controls.js         # 鍵盤監聽、純手勢引擎、手動下滑 isManual 標記 (166行)
@@ -27,7 +27,7 @@ SuperTris/
 │   ├── multiplayer.js      # Supabase Realtime 4碼配對、動作廣播與同步 (239行)
 │   ├── mario.js            # 瑪利歐道具、Gem寶石💎、動態倒數進度條 (221行)
 │   ├── audio.js            # Web Audio API 8-bit 合成、30ms 碰地微調音效 (162行)
-│   ├── i18n.js             # 繁中/英雙語字典（1P/2P固定英文、MAIN MENU、職責標籤） (172行)
+│   ├── i18n.js             # 繁中/英雙語字典（1P/2P固定英文、MAIN MENU、星星說明） (172行)
 │   ├── leaderboard.js      # 排行榜 Modal 渲染、固定 TOP 10、空值 -- 填補 (97行)
 │   ├── supabase-service.js # Supabase REST API / JS SDK 整合與分數上傳 (106行)
 │   ├── storage.js          # 本地 localStorage 離線資料管理 (90行)

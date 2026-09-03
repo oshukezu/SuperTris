@@ -1,4 +1,4 @@
-// SuperTris 遊戲核心主引擎 (雙層經典HUD、TIME計時器、💥炸彈方塊與雙人職責標籤)
+// SuperTris 遊戲核心主引擎 (雙層經典HUD、TIME計時器、💥炸彈、⭐星星重力解體填補)
 class SuperTrisGame {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
@@ -43,10 +43,7 @@ class SuperTrisGame {
   initHUDButtons() {
     const setBtn = document.getElementById('set-menu-btn');
     const setDrawer = document.getElementById('set-drawer');
-    setBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      setDrawer?.classList.toggle('hidden');
-    });
+    setBtn?.addEventListener('click', (e) => { e.stopPropagation(); setDrawer?.classList.toggle('hidden'); });
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#set-drawer') && !e.target.closest('#set-menu-btn')) this.hideDrawer();
     });
@@ -62,9 +59,7 @@ class SuperTrisGame {
     document.getElementById('pause-overlay')?.addEventListener('click', () => this.togglePause());
   }
 
-  hideDrawer() {
-    document.getElementById('set-drawer')?.classList.add('hidden');
-  }
+  hideDrawer() { document.getElementById('set-drawer')?.classList.add('hidden'); }
 
   updateSoundBtnText() {
     const btn = document.getElementById('mute-toggle-btn');
@@ -89,12 +84,8 @@ class SuperTrisGame {
   }
 
   initVisibilityListener() {
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden && !this.isPaused && !this.isGameOver) this.togglePause();
-    });
-    window.addEventListener('blur', () => {
-      if (!this.isPaused && !this.isGameOver) this.togglePause();
-    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden && !this.isPaused && !this.isGameOver) this.togglePause(); });
+    window.addEventListener('blur', () => { if (!this.isPaused && !this.isGameOver) this.togglePause(); });
   }
 
   startNewGame(mode = 'single') {
@@ -110,12 +101,10 @@ class SuperTrisGame {
     this.scoreEngine.reset();
     this.bag = new window.RandomBag();
     if (window.Mario) window.Mario.reset();
-
     document.body.classList.remove('in-title');
     document.getElementById('title-screen')?.classList.add('hidden');
     document.getElementById('game-over-modal')?.classList.add('hidden');
     document.getElementById('game-main-area')?.classList.remove('hidden');
-
     this.updateRoleBadge();
     this.nextPiece = this.bag.next();
     this.spawnPiece(1);
@@ -124,9 +113,7 @@ class SuperTrisGame {
     requestAnimationFrame((t) => this.gameLoop(t));
   }
 
-  restartGame() {
-    this.startNewGame(this.mode);
-  }
+  restartGame() { this.startNewGame(this.mode); }
 
   returnToTitle() {
     this.isPaused = true;
@@ -135,7 +122,6 @@ class SuperTrisGame {
     if (window.Multiplayer && window.Multiplayer.isConnected) window.Multiplayer.leaveRoom();
     this.initInitialHUD();
     this.updateRoleBadge();
-
     document.body.classList.add('in-title');
     document.getElementById('title-screen')?.classList.remove('hidden');
     document.getElementById('game-over-modal')?.classList.add('hidden');
@@ -240,9 +226,18 @@ class SuperTrisGame {
     this.lockResets = 0;
     const isStar = window.Mario && window.Mario.activeEffects.starMode;
     const hasBomb = window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0;
-    if (isStar || hasBomb) {
-      if (isStar) { this.board.laserClearDown(piece.getBlocks()); window.SoundEngine.playLineClear(2); }
-      if (hasBomb && window.Mario.consumeFireBomb()) { this.board.explodeCross(piece.x, piece.y); window.SoundEngine.playExplosion(); }
+
+    if (isStar) {
+      // ⭐ 無敵星星：瞬間解體為 4 個獨立 1x1 方塊，各自垂直掉落填補底層凹洞
+      this.board.shatterAndDropBlocks(piece);
+      window.SoundEngine.playLineClear(1);
+      this.checkCascadeLineClears(1);
+      this.spawnPiece(1);
+      return;
+    }
+    if (hasBomb && window.Mario.consumeFireBomb()) {
+      this.board.explodeCross(piece.x, piece.y);
+      window.SoundEngine.playExplosion();
       this.checkCascadeLineClears(1);
       this.spawnPiece(1);
       return;
