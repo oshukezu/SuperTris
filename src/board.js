@@ -71,13 +71,19 @@ class Board {
 
   explodeCross(cx, cy) {
     const offsets = [[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0]];
+    const destroyedQuestions = [];
     offsets.forEach(([dx, dy]) => {
       const x = cx + dx;
       const y = cy + dy;
       if (x >= 0 && x < this.cols && y >= 0 && y < this.rows) {
+        const cell = this.grid[y][x];
+        if (cell && cell.isQuestion) {
+          destroyedQuestions.push({ x, y });
+        }
         this.grid[y][x] = null;
       }
     });
+    return destroyedQuestions;
   }
 
   clearHalfBoard() {

@@ -17,11 +17,11 @@ SuperTris/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置
 ├── src/                    # 遊戲核心引擎模組 (上限 400 行/檔)
-│   ├── tetris.js           # 精確問號金幣動畫、雙人同方塊同步、300ms心跳 (398行)
+│   ├── tetris.js           # 炸彈引爆問號獎勵、雙人同方塊同步、300ms心跳 (399行)
+│   ├── board.js            # 棋盤 Matrix、explodeCross問號收集、⭐星星解體落砂 (143行)
 │   ├── renderer.js         # 3階堆疊高度磚色、LV3隱藏Ghost、1985動畫 (277行)
 │   ├── game_ui.js          # 1P專屬暫停權限、HUD 按鈕事件監聽、成績提交 (77行)
 │   ├── controls.js         # 鍵盤監聽、純手勢引擎、P1/P2 嚴格分工與雙擊硬降 (151行)
-│   ├── board.js            # 棋盤 Matrix、isBoardEmpty全清檢測、⭐星星解體落砂 (137行)
 │   ├── piece.js            # Tetromino 定義、1x1問號/炸彈方塊支援、SRS (157行)
 │   └── score.js            # 每消20行升級、AllClear獎勵(+3000&💎5)、99命數上限 (101行)
 ├── js/                     # 周邊功能模組 (上限 400 行/檔)
