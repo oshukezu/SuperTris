@@ -5,12 +5,15 @@
 ```
 SuperTris/
 ├── index.html              # 主頁面入口（340x680大畫布、[SET]抽屜選單、置頂單行HUD、Modal UI）
-├── style.css               # 全域 8-bit Pixel 樣式、字體加大40%+、防字體縮放、終極防橫移鎖死
-├── README.md               # 中英雙語專案說明文件（GitHub 發布用）
+├── README.md               # 中英雙語專案說明文件（GitHub 首頁展示用）
 ├── LICENSE                 # MIT 開源授權
-├── DEVLOG.md               # 開發工作日誌（即時記錄每次更動）
-├── FILE_STRUCTURE.md       # 本檔案結構清單
 ├── .gitignore              # Git 忽略設定
+├── .gitattributes          # Git 屬性設定
+├── css/                    # 樣式模組資料夾
+│   └── style.css           # 全域 8-bit Pixel 樣式、字體加大40%+、防字體縮放、終極防橫移鎖死
+├── docs/                   # 專案開發與維護說明文件資料夾
+│   ├── DEVLOG.md           # 開發工作日誌（即時記錄每次更動）
+│   └── FILE_STRUCTURE.md   # 本檔案結構清單
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置

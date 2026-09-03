@@ -2,6 +2,17 @@
 
 ---
 
+### [2026-09-03] 樣式與文件獨立資料夾收納 (css/ & docs/)
+- **樣式獨立資料夾化**：
+  - 建立 `css/` 資料夾，將 `style.css` 移動至 `css/style.css`。
+  - 同步更新 `index.html` 中的 CSS 引入路徑為 `<link rel="stylesheet" href="css/style.css" />`。
+- **維護文件收納化**：
+  - 將 `DEVLOG.md` 與 `FILE_STRUCTURE.md` 收納至 `docs/` 資料夾內。
+- **根目錄極致精簡**：
+  - 專案根目錄目前只保留 `index.html`、`README.md`、`LICENSE` 與各模組資料夾，結構清晰專業。
+
+---
+
 ### [2026-09-03] 火焰花十字爆破、重力連鎖Combo、Gem Stone寶石升級、方案A全幅放大與字體加大40%+
 - **火焰花十字爆破 (Cross Blast 5格) 與 1x1 方塊**：
   - 獲得火焰花時，掉落方塊為精準俐落的 **1x1 單格方塊**。
