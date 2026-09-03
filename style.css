@@ -108,7 +108,7 @@ body.in-title .active-buffs {
   font-weight: bold;
 }
 
-/* 第二行：輔助資訊 4 欄等寬橫排 (與第一行 100% 垂直對齊) */
+/* 第二行：輔助資訊 4 欄等寬橫排 (與第一行 100% 垂直對齊、背景透明無邊框) */
 .sub-hud-row {
   width: 100%;
   max-width: 440px;
@@ -116,10 +116,10 @@ body.in-title .active-buffs {
   grid-template-columns: repeat(4, 1fr);
   justify-items: center;
   align-items: center;
-  background: var(--panel-bg);
-  border: 2px solid #000;
+  background: transparent;
+  border: none;
   padding: 4px 0;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 .sub-hud-col {
   display: flex;

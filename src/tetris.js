@@ -1,4 +1,4 @@
-// SuperTris 遊戲核心主引擎 (雙層HUD、TIME計時、💥炸彈、⭐星星、全螢幕暫停、P2禁用與P1 PAUSE提示)
+// SuperTris 遊戲主引擎 (雙層HUD、Screen Wake Lock常亮、💥炸彈、⭐星星、PAUSED遮罩)
 class SuperTrisGame {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
@@ -23,6 +23,7 @@ class SuperTrisGame {
     this.lockAccumulator = 0;
     this.lockResets = 0;
     this.maxLockResets = 15;
+    this.wakeLock = null;
     this.controls = new window.Controls(this);
     this.initHUDButtons();
     this.initInitialHUD();
@@ -37,6 +38,22 @@ class SuperTrisGame {
     if (timeEl) timeEl.textContent = '--:--';
     const worldEl = document.getElementById('hud-world');
     if (worldEl) worldEl.textContent = '1-1';
+  }
+
+  async requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator && !this.wakeLock) {
+        this.wakeLock = await navigator.wakeLock.request('screen');
+        this.wakeLock.addEventListener('release', () => { this.wakeLock = null; });
+      }
+    } catch (e) {}
+  }
+
+  releaseWakeLock() {
+    if (this.wakeLock) {
+      this.wakeLock.release().catch(() => {});
+      this.wakeLock = null;
+    }
   }
 
   initHUDButtons() {
@@ -66,7 +83,10 @@ class SuperTrisGame {
       if (this.mode === 'coop' && window.Multiplayer && window.Multiplayer.role === 'guest') return;
       this.togglePause();
     });
-    document.addEventListener('visibilitychange', () => { if (document.hidden && !this.isPaused && !this.isGameOver) this.togglePause(); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { if (!this.isPaused && !this.isGameOver) this.togglePause(); }
+      else if (!this.isPaused && !this.isGameOver) this.requestWakeLock();
+    });
     window.addEventListener('blur', () => { if (!this.isPaused && !this.isGameOver) this.togglePause(); });
   }
 
@@ -76,15 +96,10 @@ class SuperTrisGame {
     if (!badge) return;
     if (this.mode === 'coop' && window.Multiplayer && window.Multiplayer.isConnected) {
       badge.classList.remove('hidden');
-      if (window.Multiplayer.role === 'host') {
-        badge.textContent = window.I18N.t('role_badge_p1');
-        badge.classList.remove('badge-engine');
-        if (pauseBtn) { pauseBtn.style.opacity = '1'; pauseBtn.style.pointerEvents = 'auto'; }
-      } else {
-        badge.textContent = window.I18N.t('role_badge_p2');
-        badge.classList.add('badge-engine');
-        if (pauseBtn) { pauseBtn.style.opacity = '0.5'; pauseBtn.style.pointerEvents = 'none'; }
-      }
+      const isHost = window.Multiplayer.role === 'host';
+      badge.textContent = window.I18N.t(isHost ? 'role_badge_p1' : 'role_badge_p2');
+      badge.classList.toggle('badge-engine', !isHost);
+      if (pauseBtn) { pauseBtn.style.opacity = isHost ? '1' : '0.5'; pauseBtn.style.pointerEvents = isHost ? 'auto' : 'none'; }
     } else {
       badge.classList.add('hidden');
       if (pauseBtn) { pauseBtn.style.opacity = '1'; pauseBtn.style.pointerEvents = 'auto'; }
@@ -112,6 +127,7 @@ class SuperTrisGame {
     this.updateRoleBadge();
     this.nextPiece = this.bag.next();
     this.spawnPiece(1);
+    this.requestWakeLock();
     window.SoundEngine.playIntroBGM();
     this.lastTime = performance.now();
     requestAnimationFrame((t) => this.gameLoop(t));
@@ -120,6 +136,7 @@ class SuperTrisGame {
   returnToTitle() {
     this.isPaused = true;
     this.lockAccumulator = 0;
+    this.releaseWakeLock();
     document.getElementById('set-drawer')?.classList.add('hidden');
     if (window.Multiplayer && window.Multiplayer.isConnected) window.Multiplayer.leaveRoom();
     this.initInitialHUD();
@@ -143,16 +160,11 @@ class SuperTrisGame {
   applyPauseSync(isPaused) {
     this.isPaused = isPaused;
     const overlay = document.getElementById('pause-overlay');
-    if (overlay) {
-      overlay.classList.toggle('hidden', !this.isPaused);
-      const textEl = overlay.querySelector('h2');
-      if (textEl) {
-        textEl.textContent = (this.mode === 'coop' && window.Multiplayer && window.Multiplayer.role === 'guest')
-          ? window.I18N.t('p1_paused')
-          : window.I18N.t('paused_tap');
-      }
-    }
-    if (!this.isPaused) {
+    if (overlay) overlay.classList.toggle('hidden', !this.isPaused);
+    if (this.isPaused) {
+      this.releaseWakeLock();
+    } else {
+      this.requestWakeLock();
       this.lastTime = performance.now();
       requestAnimationFrame((t) => this.gameLoop(t));
     }
@@ -302,6 +314,7 @@ class SuperTrisGame {
   async triggerGameOver() {
     this.isGameOver = true;
     this.lockAccumulator = 0;
+    this.releaseWakeLock();
     document.getElementById('set-drawer')?.classList.add('hidden');
     window.SoundEngine.playGameOver();
     const isNewHigh = window.Storage.recordGame(this.scoreEngine.score, this.scoreEngine.lines, this.scoreEngine.maxCombo, this.mode);

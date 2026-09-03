@@ -4,8 +4,8 @@
 
 ```
 SuperTris/
-├── index.html              # 主頁面入口（42px純白代碼、type="tel"電話鍵盤、雙層HUD）
-├── style.css               # 4欄Grid對齊、全螢幕暫停樣式、10秒Demo動畫、21px選單 (366行)
+├── index.html              # 主頁面入口（純粹PAUSED遮罩、42px純白代碼、type="tel"電話鍵盤）
+├── style.css               # 4欄Grid去框透明、全螢幕暫停、10秒Demo動畫、21px選單 (359行)
 ├── README.md               # 中英雙語專案說明文件（GitHub 首頁展示用）
 ├── LICENSE                 # MIT 開源授權
 ├── .gitignore              # Git 忽略設定
@@ -17,7 +17,7 @@ SuperTris/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置
 ├── src/                    # 遊戲核心引擎模組 (上限 400 行/檔)
-│   ├── tetris.js           # P2暫停禁用、P1 PAUSE提示、TIME計時、⭐星星重力落砂 (385行)
+│   ├── tetris.js           # WakeLock常亮、PAUSED暫停、P2暫停禁用、⭐星星重力落砂 (398行)
 │   ├── renderer.js         # 畫面繪製、34px像素大磚塊、💥炸彈、⭐星星方塊繪製 (127行)
 │   ├── board.js            # 棋盤 Matrix、消行、十字爆破、⭐星星解體落砂演算法 (135行)
 │   ├── piece.js            # Tetromino 定義、1x1問號/炸彈方塊支援、SRS (157行)
@@ -27,7 +27,7 @@ SuperTris/
 │   ├── multiplayer.js      # 42px即時生成、防自我連線、Enter鍵、電話鍵盤支援 (194行)
 │   ├── mario.js            # 瑪利歐道具、Gem寶石💎、動態倒數進度條 (221行)
 │   ├── audio.js            # Web Audio API 8-bit 合成、30ms 碰地微調音效 (162行)
-│   ├── i18n.js             # 繁中/英雙語字典（純code/代碼、防呆提示、Share/Enter code） (174行)
+│   ├── i18n.js             # 繁中/英雙語字典（純code/代碼、PAUSED、Share/Enter code） (174行)
 │   ├── leaderboard.js      # 排行榜 Modal 渲染、固定 TOP 10、空值 -- 填補 (97行)
 │   ├── supabase-service.js # Supabase REST API / JS SDK 整合與分數上傳 (106行)
 │   ├── storage.js          # 本地 localStorage 離線資料管理 (90行)
