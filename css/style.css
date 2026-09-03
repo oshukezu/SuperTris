@@ -1,4 +1,4 @@
-/* SuperTris 8-Bit Retro Pixel Theme (Large 340px Board, +40% Fonts, Anti-Zoom Lock) */
+/* SuperTris 8-Bit Retro Pixel Theme (NES 1985 Classic Fullscreen Title & Responsive Layout) */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
@@ -10,10 +10,11 @@
   --accent-green: #2ecc71;
   --accent-red: #e74c3c;
   --text-color: #ffffff;
-  --pixel-font: 'Press Start 2P', monospace, sans-serif;
+  --nes-sky: #5c94fc;
+  --nes-wood: #b86f18;
+  --pixel-font: 'Cubic 11', 'Press Start 2P', monospace, sans-serif;
 }
 
-/* 終極防跑版 + 嚴格鎖定 100% 字體比例（防系統大字體跑版） */
 html, body {
   position: fixed !important;
   inset: 0 !important;
@@ -22,21 +23,21 @@ html, body {
   height: 100dvh !important;
   overflow: hidden !important;
   overscroll-behavior: none !important;
-  overscroll-behavior-y: none !important;
   touch-action: none !important;
   user-select: none !important;
   -webkit-user-select: none !important;
-  -webkit-touch-callout: none !important;
   -webkit-text-size-adjust: 100% !important;
   text-size-adjust: 100% !important;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--pixel-font);
+  margin: 0;
+  padding: 0;
 }
 
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
   touch-action: none;
-  max-width: 100vw;
   -webkit-text-size-adjust: 100% !important;
   text-size-adjust: 100% !important;
 }
@@ -47,54 +48,315 @@ input {
   -webkit-user-select: text !important;
 }
 
-body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
+/* ============================================================
+   1985 NES 經典全螢幕首頁 (Full-Screen Classic Title)
+   ============================================================ */
+.nes-title-screen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background-color: var(--nes-sky);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 0 16px;
+  z-index: 80;
+  overflow: hidden;
+}
+
+.nes-top-hud {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  justify-content: space-between;
+  color: #fff;
+  font-size: 13px;
+  text-shadow: 2px 2px 0 #000;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* 經典復古棕色大木牌 */
+.nes-wood-board {
+  position: relative;
+  background-color: var(--nes-wood);
+  border: 4px solid #000;
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.5);
+  padding: 16px 28px;
+  text-align: center;
+  margin-top: 10px;
+  width: 86%;
+  max-width: 360px;
+}
+
+.screw {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #000;
+  border-radius: 50%;
+}
+.screw-tl { top: 6px; left: 6px; }
+.screw-tr { top: 6px; right: 6px; }
+.screw-bl { bottom: 6px; left: 6px; }
+.screw-br { bottom: 6px; right: 6px; }
+
+.nes-logo-text {
+  font-size: 32px;
+  color: #fce4a6;
+  text-shadow: 4px 4px 0 #c0392b, 7px 7px 0 #000;
+  line-height: 1.15;
+  letter-spacing: 2px;
+}
+
+.nes-copyright {
+  font-size: 12px;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+  margin-top: 8px;
+}
+
+/* 經典選單 */
+.nes-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 82%;
+  max-width: 320px;
+  margin-top: 8px;
+}
+
+.nes-menu-item {
+  background: transparent;
+  border: none;
+  color: #fff;
   font-family: var(--pixel-font);
+  font-size: 16px;
+  text-shadow: 2px 2px 0 #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 6px 0;
+}
+.nes-menu-item:active .nes-cursor {
+  transform: scale(1.3);
+}
+
+.nes-footer-hint {
+  color: #fff;
+  font-size: 10px;
+  text-shadow: 2px 2px 0 #000;
+  text-align: center;
+  line-height: 1.5;
+  z-index: 5;
+  margin-bottom: 6px;
+}
+
+/* 底部經典山丘、草叢與紅磚地磚 */
+.nes-scenery {
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nes-hill {
+  position: absolute;
+  bottom: 34px;
+  left: 4%;
+  width: 90px;
+  height: 50px;
+  background: #00a800;
+  border: 3px solid #000;
+  border-radius: 50px 50px 0 0;
+  box-shadow: inset 4px 4px 0 #80d010;
+}
+
+.nes-bush {
+  position: absolute;
+  bottom: 34px;
+  right: 6%;
+  width: 80px;
+  height: 35px;
+  background: #80d010;
+  border: 3px solid #000;
+  border-radius: 40px 40px 0 0;
+}
+
+.nes-ground {
+  width: 100vw;
+  height: 36px;
+  background-color: #c84c0c;
+  border-top: 4px solid #000;
+  background-image: 
+    linear-gradient(335deg, #000 6px, transparent 6px),
+    linear-gradient(155deg, #e45c10 6px, transparent 6px);
+  background-size: 18px 18px;
+}
+
+/* ============================================================
+   遊戲主畫面 Flexbox 垂直頂部釘死 + 自適應棋盤
+   ============================================================ */
+.game-main-wrapper {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   padding: 6px;
   padding-top: max(8px, env(safe-area-inset-top));
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+  overflow: hidden;
 }
 
-/* 頂部導航列 (Logo 與 [SET] 字體放大至 13~14px) */
+/* 頂部導航列 (永久釘頂 flex-shrink: 0) */
 .top-nav {
   width: 100%;
-  max-width: 480px;
+  max-width: 440px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
-  position: relative;
+  margin-bottom: 4px;
+  flex-shrink: 0;
 }
-
 .nav-brand {
   color: var(--accent-gold);
   text-shadow: 2px 2px #000;
-  font-size: 13px; /* 放大 */
+  font-size: 14px;
 }
 
-/* [SET] 下拉收折抽屜面板 */
+/* 頂部置頂單行 HUD (永久釘頂 flex-shrink: 0) */
+.top-hud-bar {
+  width: 100%;
+  max-width: 440px;
+  background: var(--panel-bg);
+  border: 3px solid #000;
+  padding: 4px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.next-item {
+  flex-direction: row;
+  gap: 4px;
+}
+#next-canvas {
+  background: #0f0f1b;
+  border: 1px solid #000;
+}
+.hud-lbl {
+  font-size: 11px;
+  color: var(--accent-gold);
+}
+.hud-val {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+/* 活躍 Buff 狀態列 (永久釘頂 flex-shrink: 0) */
+.active-buffs {
+  width: 100%;
+  max-width: 440px;
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.buff-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  background: #111;
+  border: 1px solid var(--accent-gold);
+  padding: 2px 6px;
+}
+.buff-track {
+  flex: 1;
+  height: 6px;
+  background: #222;
+  border: 1px solid #000;
+}
+.buff-fill {
+  height: 100%;
+  background: var(--accent-gold);
+}
+.buff-fill.danger {
+  background: var(--accent-red);
+}
+
+/* 棋盤自適應彈性區域 (flex: 1 最大化置中適配，絕不推擠溢出) */
+.game-layout {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  touch-action: none;
+}
+.canvas-container {
+  position: relative;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#game-canvas {
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 1 / 2;
+  object-fit: contain;
+  background: #0f0f1b;
+  border: 4px solid #000;
+  border-radius: 4px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
+}
+
+/* [SET] 抽屜選單 */
 .set-drawer {
   position: absolute;
-  top: 40px;
+  top: 36px;
   right: 6px;
   background: var(--panel-bg);
   border: 3px solid #000;
-  padding: 10px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   z-index: 90;
   box-shadow: 4px 4px 0 #000;
-  width: 180px;
+  width: 160px;
 }
 .drawer-btn {
   width: 100%;
-  padding: 10px 6px;
-  font-size: 12px; /* 放大 */
+  padding: 8px 4px;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -103,9 +365,9 @@ body {
   color: #fff;
   border: 2px solid #000;
   box-shadow: 2px 2px 0 #000;
-  padding: 8px 12px;
+  padding: 6px 10px;
   font-family: var(--pixel-font);
-  font-size: 13px; /* 放大至 13px */
+  font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -121,157 +383,7 @@ body {
   background: #c0392b;
 }
 
-/* 標題畫面 (Logo 放大至 34px，按鈕 16px) */
-#title-screen {
-  width: 100%;
-  max-width: 480px;
-  background: var(--panel-bg);
-  border: 4px solid #000;
-  border-radius: 8px;
-  padding: 28px 16px;
-  text-align: center;
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-}
-
-.title-logo {
-  font-size: 34px; /* 放大至 34px (+42%) */
-  color: var(--accent-gold);
-  text-shadow: 3px 3px 0 #c0392b, 6px 6px 0 #000;
-  margin-bottom: 4px;
-}
-
-.menu-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 88%;
-  margin-top: 10px;
-}
-.menu-btn {
-  padding: 16px;
-  font-size: 16px; /* 放大至 16px (+45%) */
-}
-
-.title-footer {
-  font-size: 11px; /* 放大 */
-  color: #888;
-  margin-top: 14px;
-  line-height: 1.6;
-}
-
-/* 頂部精簡單行橫排 HUD (數值放大至 14px，標籤 11.5px) */
-.top-hud-bar {
-  width: 100%;
-  max-width: 480px;
-  background: var(--panel-bg);
-  border: 3px solid #000;
-  padding: 6px 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.hud-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-
-.next-item {
-  flex-direction: row;
-  gap: 6px;
-  align-items: center;
-}
-#next-canvas {
-  background: #0f0f1b;
-  border: 2px solid #000;
-}
-
-.hud-lbl {
-  font-size: 11.5px; /* 放大至 11.5px (+44%) */
-  color: var(--accent-gold);
-}
-
-.hud-val {
-  font-size: 14px; /* 放大至 14px (+55%) */
-  font-weight: bold;
-}
-
-/* 遊戲主佈局 (全幅 340px 放大置中) */
-.game-layout {
-  display: flex;
-  max-width: 480px;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
-  touch-action: none;
-}
-
-.canvas-container {
-  position: relative;
-  touch-action: none;
-}
-
-#game-canvas {
-  background: #0f0f1b;
-  border: 4px solid #000;
-  border-radius: 4px;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  display: block;
-}
-
-/* 活躍 Buff 狀態列 */
-.active-buffs {
-  width: 100%;
-  max-width: 480px;
-  margin-bottom: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.buff-bar-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px; /* 放大 */
-  background: #111;
-  border: 1px solid var(--accent-gold);
-  padding: 3px 8px;
-}
-
-.buff-track {
-  flex: 1;
-  height: 8px;
-  background: #222;
-  border: 1px solid #000;
-  position: relative;
-  overflow: hidden;
-}
-
-.buff-fill {
-  height: 100%;
-  background: var(--accent-gold);
-  transition: width 0.2s linear;
-}
-.buff-fill.danger {
-  background: var(--accent-red);
-  animation: pulse 0.3s infinite alternate;
-}
-
-@keyframes pulse {
-  0% { transform: scale(0.95); }
-  100% { transform: scale(1.1); }
-}
-
-/* 道具 Toast (放大至 15px) */
+/* Toast 與彈窗 */
 .item-toast {
   position: absolute;
   top: 40%;
@@ -279,21 +391,16 @@ body {
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.92);
   border: 3px solid var(--accent-gold);
-  padding: 12px 20px;
+  padding: 10px 18px;
   color: #fff;
-  font-size: 15px; /* 放大至 15px (+50%) */
+  font-size: 14px;
   text-align: center;
   pointer-events: none;
   z-index: 50;
   white-space: nowrap;
 }
-.pop-in {
-  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.fade-out {
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
+.pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.fade-out { opacity: 0; transition: opacity 0.5s ease; }
 @keyframes popIn {
   0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
   100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
@@ -312,7 +419,6 @@ body {
   20%, 80% { opacity: 1; }
 }
 
-/* 模態彈窗 (字體放大至 15~18px) */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -323,91 +429,51 @@ body {
   z-index: 100;
   padding: 16px;
 }
-
 .pixel-modal {
   background: var(--panel-bg);
   border: 4px solid #000;
   border-radius: 8px;
   width: 100%;
-  max-width: 420px;
-  padding: 22px;
+  max-width: 400px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   text-align: center;
 }
-
-.modal-title {
-  color: var(--accent-gold);
-  font-size: 16px; /* 放大 */
-}
-
+.modal-title { color: var(--accent-gold); font-size: 15px; }
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  font-size: 13px; /* 放大 */
+  gap: 8px;
+  font-size: 12px;
   background: #111;
-  padding: 12px;
+  padding: 10px;
   border: 2px solid #000;
 }
-
 .pixel-input {
   background: #000;
   border: 2px solid var(--accent-gold);
   color: #fff;
   font-family: var(--pixel-font);
-  font-size: 14px; /* 放大 */
-  padding: 12px;
+  font-size: 13px;
+  padding: 10px;
   text-align: center;
   outline: none;
 }
+.lb-tabs { display: flex; gap: 4px; }
+.lb-tab { flex: 1; }
+.lb-tab.active { background: var(--accent-gold); color: #000; }
+.lb-list { max-height: 220px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; }
+.lb-row { display: flex; justify-content: space-between; padding: 5px; background: #161622; border-radius: 3px; }
+.lb-header { background: #2b2b3d; color: var(--accent-gold); }
+.lb-me { background: #4a2810; border: 1px solid var(--accent-gold); }
 
-/* 排行榜 */
-.lb-tabs {
-  display: flex;
-  gap: 6px;
-}
-.lb-tab {
-  flex: 1;
-}
-.lb-tab.active {
-  background: var(--accent-gold);
-  color: #000;
-}
-.lb-list {
-  max-height: 240px;
-  overflow-y: auto;
-  font-size: 12px; /* 放大 */
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.lb-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 8px;
-  background: #161622;
-  border-radius: 3px;
-}
-.lb-header {
-  background: #2b2b3d;
-  color: var(--accent-gold);
-}
-.lb-me {
-  background: #4a2810;
-  border: 1px solid var(--accent-gold);
-}
-
-.hidden {
-  display: none !important;
-}
+.hidden { display: none !important; }
 
 /* 橫向鎖定警告 */
 @media screen and (orientation: landscape) and (max-height: 500px) {
-  #landscape-warning {
-    display: flex !important;
-  }
+  #landscape-warning { display: flex !important; }
 }
 #landscape-warning {
   display: none;

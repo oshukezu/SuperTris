@@ -4,13 +4,13 @@
 
 ```
 SuperTris/
-├── index.html              # 主頁面入口（340x680大畫布、[SET]抽屜選單、置頂單行HUD、Modal UI）
+├── index.html              # 主頁面入口（1985 NES全螢幕首頁、[SET]抽屜、釘頂單行HUD、Modal UI）
 ├── README.md               # 中英雙語專案說明文件（GitHub 首頁展示用）
 ├── LICENSE                 # MIT 開源授權
 ├── .gitignore              # Git 忽略設定
 ├── .gitattributes          # Git 屬性設定
 ├── css/                    # 樣式模組資料夾
-│   └── style.css           # 全域 8-bit Pixel 樣式、字體加大40%+、防字體縮放、終極防橫移鎖死
+│   └── style.css           # 1985 NES首頁、俐方體中英字型、Flexbox釘頂防跑版 (336行)
 ├── docs/                   # 專案開發與維護說明文件資料夾
 │   ├── DEVLOG.md           # 開發工作日誌（即時記錄每次更動）
 │   └── FILE_STRUCTURE.md   # 本檔案結構清單
@@ -18,7 +18,7 @@ SuperTris/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置
 ├── src/                    # 遊戲核心引擎模組 (上限 400 行/檔)
-│   ├── tetris.js           # 主循環、十字爆破、重力連鎖Combo、34px放大畫布 (373行)
+│   ├── tetris.js           # 主循環、十字爆破、重力連鎖Combo、首頁切換 (377行)
 │   ├── renderer.js         # 畫面繪製、34px像素大磚塊紋理、置頂迷你 Next 預覽 (109行)
 │   ├── board.js            # 棋盤 Matrix、消行判定、十字爆破、重力塌陷 (173行)
 │   ├── piece.js            # Tetromino 定義、1x1問號/火焰花方塊支援、SRS (157行)

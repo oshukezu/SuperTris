@@ -99,7 +99,7 @@ class SuperTrisGame {
     if (window.Mario) window.Mario.reset();
     document.getElementById('title-screen')?.classList.add('hidden');
     document.getElementById('game-over-modal')?.classList.add('hidden');
-    document.getElementById('hud')?.classList.remove('hidden');
+    document.getElementById('game-main-wrapper')?.classList.remove('hidden');
     this.nextPiece = this.bag.next();
     this.spawnPiece(1);
     window.SoundEngine.playIntroBGM();
@@ -118,9 +118,13 @@ class SuperTrisGame {
     if (window.Multiplayer && window.Multiplayer.isConnected) {
       window.Multiplayer.leaveRoom();
     }
+    const highScore = window.Storage ? window.Storage.getHighScore('single') : 0;
+    const titleScore = document.getElementById('title-score-preview');
+    if (titleScore) titleScore.textContent = String(highScore).padStart(6, '0');
+
     document.getElementById('title-screen')?.classList.remove('hidden');
     document.getElementById('game-over-modal')?.classList.add('hidden');
-    document.getElementById('hud')?.classList.add('hidden');
+    document.getElementById('game-main-wrapper')?.classList.add('hidden');
   }
 
   togglePause() {

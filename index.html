@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
   <title>SUPERTRIS</title>
+  <!-- 開源 8-Bit 像素中文 (俐方體 11 號) 與英文字型 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cubic-11@1.010/fonts/web/style.css" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -13,39 +15,70 @@
     <p data-i18n="portrait_warning">[NOTICE] 請轉為直向模式遊玩（禁止橫向操作）</p>
   </div>
 
-  <!-- 頂部精簡導航列：左側 Logo，右側 [SET] 齒輪按鈕 -->
-  <header class="top-nav">
-    <div class="nav-brand">SUPERTRIS</div>
-    <button class="pixel-btn pixel-btn-accent" id="set-menu-btn">[SET]</button>
-  </header>
-
-  <!-- [SET] 下拉收折抽屜選單 -->
-  <div id="set-drawer" class="set-drawer hidden">
-    <button class="pixel-btn drawer-btn" id="lang-toggle-btn">EN</button>
-    <button class="pixel-btn drawer-btn" id="mute-toggle-btn">SOUND: ON</button>
-    <button class="pixel-btn drawer-btn" id="pause-btn" data-i18n="pause">PAUSE</button>
-    <button class="pixel-btn drawer-btn pixel-btn-red" id="restart-btn" data-i18n="restart">RESTART</button>
-    <button class="pixel-btn drawer-btn pixel-btn-accent" id="leaderboard-btn" data-i18n="leaderboard">RANKINGS</button>
-  </div>
-
-  <!-- 標題主選單畫面 (Title Screen) -->
-  <section id="title-screen">
-    <h1 class="title-logo">SUPER TRIS</h1>
-
-    <div class="menu-buttons">
-      <button class="pixel-btn pixel-btn-accent menu-btn" id="play-single-btn" data-i18n="play_single">單人冒險模式</button>
-      <button class="pixel-btn menu-btn" id="play-coop-btn" data-i18n="play_coop">雙人合作模式</button>
+  <!-- 1985 NES 經典全螢幕首頁畫面 (Full Screen Classic Title) -->
+  <section id="title-screen" class="nes-title-screen">
+    <!-- 頂部經典 HUD 數據列 -->
+    <div class="nes-top-hud">
+      <div>MARIO<br><span id="title-score-preview">000000</span></div>
+      <div>💎x00</div>
+      <div>WORLD<br>1-1</div>
+      <div>TIME<br>--</div>
     </div>
 
-    <div class="title-footer">
-      <p data-i18n="controls_kb_p1">電腦: WASD/方向鍵移動，Space 快速落地，P 暫停</p>
-      <p data-i18n="controls_kb_p2" style="margin-top:4px;">手機: 左右滑動移動，下滑持續加速，單擊旋轉</p>
+    <!-- 經典復古棕色木牌大標題 -->
+    <div class="nes-wood-board">
+      <div class="screw screw-tl"></div>
+      <div class="screw screw-tr"></div>
+      <div class="screw screw-bl"></div>
+      <div class="screw screw-br"></div>
+      <h1 class="nes-logo-text">SUPER<br>TRIS</h1>
+      <div class="nes-copyright">©2026 SUPERTRIS</div>
+    </div>
+
+    <!-- 經典選單按鈕 -->
+    <div class="nes-menu">
+      <button class="nes-menu-item" id="play-single-btn">
+        <span class="nes-cursor">🍄</span>
+        <span data-i18n="play_single">1 PLAYER GAME</span>
+      </button>
+      <button class="nes-menu-item" id="play-coop-btn">
+        <span class="nes-cursor">🍄</span>
+        <span data-i18n="play_coop">2 PLAYER GAME</span>
+      </button>
+    </div>
+
+    <!-- 底部操作說明小字 -->
+    <div class="nes-footer-hint">
+      <p data-i18n="controls_kb_p1">PC: WASD / Space / P</p>
+      <p data-i18n="controls_kb_p2" style="margin-top:2px;">MOBILE: SWIPE & TAP</p>
+    </div>
+
+    <!-- 底部像素場景裝飾 (山丘、草叢與紅磚地磚) -->
+    <div class="nes-scenery">
+      <div class="nes-hill"></div>
+      <div class="nes-bush"></div>
+      <div class="nes-ground"></div>
     </div>
   </section>
 
-  <!-- 遊戲主畫面 (單行置頂 HUD + 放大 Canvas) -->
-  <main id="hud" class="hidden" style="width: 100%; max-width: 480px;">
-    <!-- 頂部精簡單行橫排 HUD：Next + Score + Level + Lines + Gem 💎 + Life 🍄 -->
+  <!-- 遊戲主畫面容器 (Flexbox 垂直頂部釘死 + 自適應棋盤) -->
+  <div id="game-main-wrapper" class="game-main-wrapper hidden">
+    <!-- 頂部精簡導航列：左側 Logo，右側 [SET] 齒輪按鈕 (永久釘頂) -->
+    <header class="top-nav">
+      <div class="nav-brand">SUPERTRIS</div>
+      <button class="pixel-btn pixel-btn-accent" id="set-menu-btn">[SET]</button>
+    </header>
+
+    <!-- [SET] 下拉收折抽屜選單 -->
+    <div id="set-drawer" class="set-drawer hidden">
+      <button class="pixel-btn drawer-btn" id="lang-toggle-btn">EN</button>
+      <button class="pixel-btn drawer-btn" id="mute-toggle-btn">SOUND: ON</button>
+      <button class="pixel-btn drawer-btn" id="pause-btn" data-i18n="pause">PAUSE</button>
+      <button class="pixel-btn drawer-btn pixel-btn-red" id="restart-btn" data-i18n="restart">RESTART</button>
+      <button class="pixel-btn drawer-btn pixel-btn-accent" id="leaderboard-btn" data-i18n="leaderboard">RANKINGS</button>
+    </div>
+
+    <!-- 頂部精簡單行橫排 HUD：Next + Score + Level + Lines + Gem 💎 + Life 🍄 (永久釘頂) -->
     <div class="top-hud-bar">
       <div class="hud-item next-item">
         <span class="hud-lbl" data-i18n="next">NEXT</span>
@@ -73,11 +106,11 @@
       </div>
     </div>
 
-    <!-- 道具 Buff 狀態列與像素進度條 -->
+    <!-- 道具 Buff 狀態列與像素進度條 (永久釘頂) -->
     <div id="active-powerups" class="active-buffs" style="min-height: 16px;"></div>
 
-    <!-- 棋盤全幅放大居中佈局 (方案 A: 340×680) -->
-    <div class="game-layout" id="touch-gesture-area">
+    <!-- 棋盤自適應彈性區域 (在剩餘視窗中最大化置中，絕不溢出推擠) -->
+    <main class="game-layout" id="touch-gesture-area">
       <div class="canvas-container">
         <canvas id="game-canvas" width="340" height="680"></canvas>
         <div id="item-toast" class="item-toast hidden"></div>
@@ -86,8 +119,8 @@
           <h2 style="color: var(--accent-gold);" data-i18n="pause">PAUSED (TAP TO RESUME)</h2>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
+  </div>
 
   <!-- 雙人跨裝置配對房間 Modal -->
   <div id="room-modal" class="modal-backdrop hidden">
