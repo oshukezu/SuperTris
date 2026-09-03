@@ -1,4 +1,4 @@
-// SuperTris 棋盤管理、色階切換、垂直重力塌陷與消行動畫 (Board Module)
+// SuperTris 棋盤管理、色階切換、垂直重力塌陷與十字爆破 (Board Module)
 
 const THEME_PHASES = {
   SAFE: {
@@ -51,7 +51,6 @@ class Board {
   getCurrentTheme() {
     const height = this.getStackHeight();
     const ratio = height / this.rows;
-
     if (ratio >= 0.8 || (this.rows - height) <= 4) {
       return THEME_PHASES.CRITICAL;
     } else if (ratio >= 0.5) {
@@ -112,36 +111,39 @@ class Board {
     }
   }
 
-  // 火焰花引爆 3x3 區域，並觸發垂直重力塌陷
-  explodeAround(cx, cy) {
+  // 十字爆破（Cross Blast - 落點中心 + 上下左右各1格，共5格）
+  explodeCross(cx, cy) {
     let destroyed = 0;
-    for (let r = cy - 1; r <= cy + 1; r++) {
-      for (let c = cx - 1; c <= cx + 1; c++) {
-        if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
-          if (this.grid[r][c] !== null) {
-            this.grid[r][c] = null;
-            destroyed++;
-          }
+    const targets = [
+      { r: cy, c: cx },
+      { r: cy - 1, c: cx },
+      { r: cy + 1, c: cx },
+      { r: cy, c: cx - 1 },
+      { r: cy, c: cx + 1 }
+    ];
+
+    targets.forEach(t => {
+      if (t.r >= 0 && t.r < this.rows && t.c >= 0 && t.c < this.cols) {
+        if (this.grid[t.r][t.c] !== null) {
+          this.grid[t.r][t.c] = null;
+          destroyed++;
         }
       }
-    }
-    // 引爆後執行重力塌陷
+    });
+
     this.applyGravity();
     return destroyed;
   }
 
-  // 垂直重力塌陷演算法：讓懸空的磚塊垂直掉落填補下方空洞
+  // 垂直重力塌陷演算法
   applyGravity() {
     for (let c = 0; c < this.cols; c++) {
-      // 收集該列中所有存在的磚塊
       const colBlocks = [];
       for (let r = 0; r < this.rows; r++) {
         if (this.grid[r][c] !== null) {
           colBlocks.push(this.grid[r][c]);
         }
       }
-
-      // 由底向上重新填入
       for (let r = this.rows - 1; r >= 0; r--) {
         if (colBlocks.length > 0) {
           this.grid[r][c] = colBlocks.pop();
@@ -152,7 +154,6 @@ class Board {
     }
   }
 
-  // 無敵星星垂直貫穿消除整列到底，並執行重力塌陷
   laserClearDown(blocks) {
     let count = 0;
     blocks.forEach(b => {

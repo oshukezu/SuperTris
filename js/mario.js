@@ -1,9 +1,9 @@
-// SuperTris 瑪利歐道具系統與動態像素進度條 (回歸生動 Emoji)
+// SuperTris 瑪利歐道具系統、Gem 寶石與連鎖 Toast (Mario Mechanics)
 const Mario = {
   ITEM_PROBABILITIES: [
-    { type: 'coin', label: '🪙 COIN (+1)', weight: 60 },
+    { type: 'coin', label: '💎 GEM (+1)', weight: 60 },
     { type: 'red_mushroom', label: '🍄 MUSHROOM (Score ×2)', weight: 18 },
-    { type: 'fire_flower', label: '🌸 FIRE (Bomb ×5)', weight: 14 },
+    { type: 'fire_flower', label: '🌸 FIRE (Cross Bomb ×5)', weight: 14 },
     { type: 'green_mushroom', label: '🍄 1UP (Life +1)', weight: 5 },
     { type: 'super_star', label: '⭐ STAR (Laser Clear)', weight: 3 }
   ],
@@ -62,9 +62,9 @@ const Mario = {
 
     switch (itemType) {
       case 'coin':
-        gameContext.scoreEngine.addCoins(1);
+        gameContext.scoreEngine.addGems(1);
         window.SoundEngine.playCoin();
-        this.showToast('🪙 +1 COIN');
+        this.showToast('💎 +1 GEM');
         break;
 
       case 'red_mushroom':
@@ -172,7 +172,7 @@ const Mario = {
     clearTimeout(this._toastTimeout);
     this._toastTimeout = setTimeout(() => {
       toast.classList.add('fade-out');
-      setTimeout(() => toast.classList.add('hidden'), 500);
+      setTimeout(() => toast.classList.add('hidden'), 400);
     }, 1800);
   },
 
@@ -197,7 +197,7 @@ const Mario = {
     if (this.activeEffects.fireBombsRemaining > 0) {
       html += `
         <div class="buff-bar-container">
-          <span>🌸 BOMB x${this.activeEffects.fireBombsRemaining}</span>
+          <span>🌸 CROSS BOMB x${this.activeEffects.fireBombsRemaining}</span>
         </div>
       `;
     }

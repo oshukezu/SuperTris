@@ -1,6 +1,6 @@
-// SuperTris 畫面渲染模組 (Renderer Module) - 適配頂部單行 HUD 迷你方塊
+// SuperTris 畫面渲染模組 (Renderer Module) - 適配 34px 大單格與頂部 HUD
 class Renderer {
-  constructor(canvas, nextCanvas, cellSize = 28) {
+  constructor(canvas, nextCanvas, cellSize = 34) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.nextCanvas = nextCanvas;
@@ -20,14 +20,14 @@ class Renderer {
     ctx.fillRect(x, y, size, size);
 
     ctx.strokeStyle = darkColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
 
     if (isQuestion) {
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 16px "Press Start 2P", monospace';
+      ctx.font = 'bold 20px "Press Start 2P", monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('?', x + size / 2, y + size / 2 + 6);
+      ctx.fillText('?', x + size / 2, y + size / 2 + 7);
     } else {
       ctx.fillStyle = darkColor;
       ctx.fillRect(x, y + size / 2, size, 2);
@@ -44,13 +44,12 @@ class Renderer {
   drawGhostBlock(ctx, x, y, theme) {
     const size = this.cellSize;
     ctx.strokeStyle = theme.highlight;
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([3, 3]);
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
     ctx.strokeRect(x + 2, y + 2, size - 4, size - 4);
     ctx.setLineDash([]);
   }
 
-  // 渲染頂部單行 HUD 的 10~12px 迷你預覽方塊
   renderSidePreview(ctx, piece, theme) {
     if (!ctx) return;
     ctx.fillStyle = '#0f0f1b';
@@ -58,7 +57,7 @@ class Renderer {
 
     if (!piece) return;
     const blocks = piece.getBlocks(0, 0);
-    const miniSize = 10;
+    const miniSize = 11;
     const offsetX = (ctx.canvas.width - piece.shape[0].length * miniSize) / 2;
     const offsetY = (ctx.canvas.height - piece.shape.length * miniSize) / 2;
 

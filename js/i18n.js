@@ -1,4 +1,4 @@
-// SuperTris 多語系字典 (i18n) - 道具回歸 Emoji，按鈕維持純文字
+// SuperTris 多語系字典 (i18n) - 升級為 Gem 寶石 💎
 const I18N = {
   currentLang: 'zh-TW',
   translations: {
@@ -12,7 +12,7 @@ const I18N = {
       score: 'SCORE',
       level: 'LVL',
       lines: 'LINES',
-      coins: 'COIN',
+      coins: 'GEM',
       lives: 'LIFE',
       combo: '連擊',
       next: 'NEXT',
@@ -40,9 +40,9 @@ const I18N = {
       close: '關閉',
       item_red_mushroom: '🍄 紅蘑菇！分數 ×2 (+30秒)',
       item_green_mushroom: '🍄 綠蘑菇！1UP 命數 +1！',
-      item_fire_flower: '🌸 火焰花！下 5 塊引爆炸彈！',
+      item_fire_flower: '🌸 火焰花！下 5 塊十字爆破！',
       item_super_star: '⭐ 無敵星星！15秒穿透消除！',
-      coin_100_bonus: '🪙 滿 100 金幣！獲得 1UP！',
+      coin_100_bonus: '💎 滿 100 寶石！獲得 1UP！',
       life_lost: '💔 失去 1 條命！下半重整！',
       controls_kb_p1: '電腦: WASD/方向鍵移動，Space 快速落地，P 暫停',
       controls_kb_p2: '手機: 左右滑動移動，下滑持續加速，單擊旋轉',
@@ -70,7 +70,7 @@ const I18N = {
       score: 'SCORE',
       level: 'LVL',
       lines: 'LINES',
-      coins: 'COIN',
+      coins: 'GEM',
       lives: 'LIFE',
       combo: 'Combo',
       next: 'NEXT',
@@ -98,9 +98,9 @@ const I18N = {
       close: 'Close',
       item_red_mushroom: '🍄 Red Mushroom! Score ×2 (+30s)',
       item_green_mushroom: '🍄 Green Mushroom! Life +1!',
-      item_fire_flower: '🌸 Fire Flower! Next 5 drops bomb!',
+      item_fire_flower: '🌸 Fire Flower! Cross Bomb ×5!',
       item_super_star: '⭐ Super Star! 15s Laser Clear!',
-      coin_100_bonus: '🪙 100 Coins collected! 1UP!',
+      coin_100_bonus: '💎 100 Gems collected! 1UP!',
       life_lost: '💔 Life Lost! Half board cleared!',
       controls_kb_p1: 'PC: WASD / Arrows to move, Space Hard Drop, P Pause',
       controls_kb_p2: 'Mobile: Swipe to move, Swipe down to drop, Tap to rotate',

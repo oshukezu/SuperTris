@@ -1,11 +1,11 @@
-// SuperTris 遊戲核心主引擎 (幀同步 Lock Delay 徹底修復與手動即時鎖定)
+// SuperTris 遊戲核心主引擎 (34px全幅放大、十字爆破、重力連鎖Combo)
 class SuperTrisGame {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
     this.nextCanvas = document.getElementById('next-canvas');
     this.cols = 10;
     this.rows = 20;
-    this.cellSize = 28;
+    this.cellSize = 34; // 方案 A：34px
     this.board = new window.Board(this.cols, this.rows);
     this.scoreEngine = new window.ScoreEngine();
     this.bag = new window.RandomBag();
@@ -137,16 +137,20 @@ class SuperTrisGame {
   spawnPiece(playerIndex = 1) {
     this.lockAccumulator = 0;
     this.lockResets = 0;
-    let p = this.nextPiece || this.bag.next();
-    p.playerIndex = 1;
-    p.x = 3;
-    p.y = 0;
-    if (this.board.isCollision(p.getBlocks())) {
+    if (window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0) {
+      this.p1Piece = new window.Piece('Q', false, 1);
+    } else {
+      let p = this.nextPiece || this.bag.next();
+      p.playerIndex = 1;
+      p.x = 3;
+      p.y = 0;
+      this.p1Piece = p;
+      this.nextPiece = this.bag.next();
+    }
+    if (this.board.isCollision(this.p1Piece.getBlocks())) {
       this.handleLifeLost();
       return;
     }
-    this.p1Piece = p;
-    this.nextPiece = this.bag.next();
   }
 
   isPieceGrounded() {
@@ -222,32 +226,42 @@ class SuperTrisGame {
         window.SoundEngine.playLineClear(2);
       }
       if (hasBomb && window.Mario.consumeFireBomb()) {
-        this.board.explodeAround(piece.x + 1, piece.y + 1);
+        this.board.explodeCross(piece.x, piece.y); // 十字爆破 (5格)
         window.SoundEngine.playExplosion();
       }
-      this.checkCascadeLineClears();
+      this.checkCascadeLineClears(1);
       this.spawnPiece(1);
       return;
     }
     this.board.lockPiece(piece);
     if (window.Mario) window.Mario.mutateRandomCellToQuestion(this.board);
-    this.checkCascadeLineClears();
+    this.checkCascadeLineClears(1);
     this.spawnPiece(1);
   }
 
-  checkCascadeLineClears() {
+  checkCascadeLineClears(cascadeLevel = 1) {
     const fullLines = this.board.findFullLines();
     if (fullLines.length > 0) {
       const qCount = this.board.removeLines(fullLines);
-      this.scoreEngine.addClearedLines(fullLines.length);
+      let cascadeMultiplier = 1;
+      if (cascadeLevel === 2) cascadeMultiplier = 1.5;
+      else if (cascadeLevel === 3) cascadeMultiplier = 2.0;
+      else if (cascadeLevel >= 4) cascadeMultiplier = 3.0;
+
+      this.scoreEngine.addClearedLines(fullLines.length, cascadeMultiplier);
       window.SoundEngine.playLineClear(fullLines.length);
+
+      if (cascadeLevel > 1) {
+        this.scoreEngine.addGems(1);
+        if (window.Mario) window.Mario.showToast(`CASCADE x${cascadeLevel - 1} COMBO! (+💎1)`);
+      }
       if (qCount > 0 && window.Mario) {
-        for (let i = 0; i < qCount; i++) {
-          window.Mario.triggerItem(window.Mario.rollItem(), this);
-        }
+        for (let i = 0; i < qCount; i++) window.Mario.triggerItem(window.Mario.rollItem(), this);
       }
       if (fullLines.length === 4) this.triggerTetrisSpecialEffect();
-    } else {
+      this.board.applyGravity();
+      this.checkCascadeLineClears(cascadeLevel + 1);
+    } else if (cascadeLevel === 1) {
       this.scoreEngine.addClearedLines(0);
     }
   }
@@ -311,7 +325,7 @@ class SuperTrisGame {
       lines_cleared: this.scoreEngine.lines,
       max_combo: this.scoreEngine.maxCombo,
       level: this.scoreEngine.level,
-      coins: this.scoreEngine.coins,
+      coins: this.scoreEngine.gems,
       mode: this.mode,
       items_used: window.Mario ? window.Mario.itemsUsedCount : {}
     });
@@ -326,9 +340,7 @@ class SuperTrisGame {
 
     if (this.isPieceGrounded()) {
       this.lockAccumulator += dt;
-      if (this.lockAccumulator >= this.lockDelay) {
-        this.lockCurrentPiece(1);
-      }
+      if (this.lockAccumulator >= this.lockDelay) this.lockCurrentPiece(1);
     } else {
       this.lockAccumulator = 0;
     }
@@ -340,21 +352,19 @@ class SuperTrisGame {
     }
 
     if (window.Mario) window.Mario.tickTimers(dt / 1000);
-
     if (time - this.lastSyncTime > 150) {
       if (window.Multiplayer && window.Multiplayer.role === 'host') {
         window.Multiplayer.broadcastState({
           score: this.scoreEngine.score,
           lines: this.scoreEngine.lines,
           level: this.scoreEngine.level,
-          coins: this.scoreEngine.coins,
+          coins: this.scoreEngine.gems,
           lives: this.scoreEngine.lives,
           grid: this.board.grid
         });
       }
       this.lastSyncTime = time;
     }
-
     this.renderer.render(this.board, this.p1Piece, null, this.nextPiece, this.mode);
     requestAnimationFrame((t) => this.gameLoop(t));
   }

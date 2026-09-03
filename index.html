@@ -43,9 +43,9 @@
     </div>
   </section>
 
-  <!-- 遊戲主畫面 (單行置頂 HUD + Canvas) -->
+  <!-- 遊戲主畫面 (單行置頂 HUD + 放大 Canvas) -->
   <main id="hud" class="hidden" style="width: 100%; max-width: 480px;">
-    <!-- 頂部精簡單行橫排 HUD：Next + Score + Level + Lines + Coin + Life -->
+    <!-- 頂部精簡單行橫排 HUD：Next + Score + Level + Lines + Gem 💎 + Life 🍄 -->
     <div class="top-hud-bar">
       <div class="hud-item next-item">
         <span class="hud-lbl" data-i18n="next">NEXT</span>
@@ -64,7 +64,7 @@
         <span class="hud-val" id="hud-lines">0</span>
       </div>
       <div class="hud-item">
-        <span class="hud-lbl">🪙</span>
+        <span class="hud-lbl">💎</span>
         <span class="hud-val"><strong id="hud-coins">0</strong>/100</span>
       </div>
       <div class="hud-item">
@@ -76,10 +76,10 @@
     <!-- 道具 Buff 狀態列與像素進度條 -->
     <div id="active-powerups" class="active-buffs" style="min-height: 16px;"></div>
 
-    <!-- 棋盤全幅放大居中佈局 -->
+    <!-- 棋盤全幅放大居中佈局 (方案 A: 340×680) -->
     <div class="game-layout" id="touch-gesture-area">
       <div class="canvas-container">
-        <canvas id="game-canvas" width="280" height="560"></canvas>
+        <canvas id="game-canvas" width="340" height="680"></canvas>
         <div id="item-toast" class="item-toast hidden"></div>
         <div id="tetris-firework-fx" class="tetris-fx hidden"></div>
         <div id="pause-overlay" class="modal-backdrop hidden" style="position: absolute; cursor: pointer;">
@@ -99,19 +99,19 @@
 
       <div id="room-setup-view" style="display: flex; flex-direction: column; gap: 12px;">
         <button class="pixel-btn pixel-btn-accent menu-btn" id="btn-create-room" data-i18n="create_room">建立新房間 (P1 舵手)</button>
-        <div style="font-size: 10px; color: #888;">— OR —</div>
+        <div style="font-size: 11px; color: #888;">— OR —</div>
         <input type="text" id="join-code-input" class="pixel-input" maxlength="4" placeholder="請輸入 4 位房間碼" data-i18n-placeholder="enter_room_code" />
         <button class="pixel-btn menu-btn" id="btn-join-room" data-i18n="join_room">加入房間 (P2 引擎)</button>
       </div>
 
       <div id="room-waiting-view" class="hidden" style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
-        <div style="font-size: 11px; color: var(--accent-gold);" data-i18n="your_room_code">房間代碼</div>
-        <div id="display-room-code" style="font-size: 28px; letter-spacing: 4px; color: #fff; background: #000; padding: 6px 16px; border: 2px solid var(--accent-gold);">----</div>
-        <div id="room-role-hint" style="font-size: 10px; color: #2ecc71; line-height: 1.5;"></div>
-        <div style="font-size: 10px; color: #aaa;" class="pixel-pulse" data-i18n="waiting_partner">等待隊友加入中...</div>
+        <div style="font-size: 13px; color: var(--accent-gold);" data-i18n="your_room_code">房間代碼</div>
+        <div id="display-room-code" style="font-size: 32px; letter-spacing: 4px; color: #fff; background: #000; padding: 6px 16px; border: 2px solid var(--accent-gold);">----</div>
+        <div id="room-role-hint" style="font-size: 12px; color: #2ecc71; line-height: 1.5;"></div>
+        <div style="font-size: 12px; color: #aaa;" class="pixel-pulse" data-i18n="waiting_partner">等待隊友加入中...</div>
       </div>
 
-      <div id="room-error-msg" style="color: #e74c3c; font-size: 10px;"></div>
+      <div id="room-error-msg" style="color: #e74c3c; font-size: 12px;"></div>
     </div>
   </div>
 
