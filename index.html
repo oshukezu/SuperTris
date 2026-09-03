@@ -15,59 +15,41 @@
     <p data-i18n="portrait_warning">[NOTICE] 請轉為直向模式遊玩（禁止橫向操作）</p>
   </div>
 
-  <!-- 1985 NES 經典全螢幕首頁畫面 (Full Screen Classic Title) -->
-  <section id="title-screen" class="nes-title-screen">
-    <!-- 頂部經典 HUD 數據列 -->
-    <div class="nes-top-hud">
-      <div>MARIO<br><span id="title-score-preview">000000</span></div>
-      <div>💎x00</div>
-      <div>WORLD<br>1-1</div>
-      <div>TIME<br>--</div>
+  <!-- ============================================================
+       頂部雙層全域常駐 HUD (首頁與遊戲中完全沿用，位置與字級 100% 相同)
+       ============================================================ -->
+  <header class="global-header-wrapper">
+    <!-- 第一行：NES 經典四欄數據 (MARIO SCORE | 💎x00 | WORLD 1-1 | TIME) -->
+    <div class="nes-top-hud-row">
+      <div class="hud-col"><span class="hud-sub">MARIO</span><span id="hud-score" class="hud-main">000000</span></div>
+      <div class="hud-col"><span class="hud-sub">💎</span><span class="hud-main"><strong id="hud-coins">0</strong>/100</span></div>
+      <div class="hud-col"><span class="hud-sub">WORLD</span><span id="hud-world" class="hud-main">1-1</span></div>
+      <div class="hud-col"><span class="hud-sub">TIME</span><span id="hud-time" class="hud-main">--:--</span></div>
     </div>
 
-    <!-- 經典復古棕色木牌大標題 -->
-    <div class="nes-wood-board">
-      <div class="screw screw-tl"></div>
-      <div class="screw screw-tr"></div>
-      <div class="screw screw-bl"></div>
-      <div class="screw screw-br"></div>
-      <h1 class="nes-logo-text">SUPER<br>TRIS</h1>
-      <div class="nes-copyright">©2026 SUPERTRIS</div>
-    </div>
+    <!-- 第二行：輔助資訊橫排 (NEXT 迷你方塊 | LINES | 🍄 LIFE | 雙人職責標籤 | [SET] 按鈕) -->
+    <div class="sub-hud-row">
+      <div class="sub-hud-left">
+        <div class="sub-hud-item">
+          <span class="sub-lbl" data-i18n="next">NEXT</span>
+          <canvas id="next-canvas" width="32" height="32"></canvas>
+        </div>
+        <div class="sub-hud-item">
+          <span class="sub-lbl" data-i18n="lines">LINES</span>
+          <span id="hud-lines" class="sub-val">0</span>
+        </div>
+        <div class="sub-hud-item">
+          <span class="sub-lbl">🍄 LIFE</span>
+          <span id="hud-lives" class="sub-val" style="color: #2ecc71;">3</span>
+        </div>
+      </div>
 
-    <!-- 經典選單按鈕 -->
-    <div class="nes-menu">
-      <button class="nes-menu-item" id="play-single-btn">
-        <span class="nes-cursor">🍄</span>
-        <span data-i18n="play_single">1 PLAYER GAME</span>
-      </button>
-      <button class="nes-menu-item" id="play-coop-btn">
-        <span class="nes-cursor">🍄</span>
-        <span data-i18n="play_coop">2 PLAYER GAME</span>
-      </button>
-    </div>
+      <!-- 雙人模式專屬醒目職責標籤 (預設隱藏) -->
+      <div id="header-role-badge" class="header-role-badge hidden">P1 負責移動 ↔</div>
 
-    <!-- 底部操作說明小字 -->
-    <div class="nes-footer-hint">
-      <p data-i18n="controls_kb_p1">PC: WASD / Space / P</p>
-      <p data-i18n="controls_kb_p2" style="margin-top:2px;">MOBILE: SWIPE & TAP</p>
-    </div>
-
-    <!-- 底部像素場景裝飾 (山丘、草叢與紅磚地磚) -->
-    <div class="nes-scenery">
-      <div class="nes-hill"></div>
-      <div class="nes-bush"></div>
-      <div class="nes-ground"></div>
-    </div>
-  </section>
-
-  <!-- 遊戲主畫面容器 (Flexbox 垂直頂部釘死 + 自適應棋盤) -->
-  <div id="game-main-wrapper" class="game-main-wrapper hidden">
-    <!-- 頂部精簡導航列：左側 Logo，右側 [SET] 齒輪按鈕 (永久釘頂) -->
-    <header class="top-nav">
-      <div class="nav-brand">SUPERTRIS</div>
+      <!-- 右側 [SET] 齒輪抽屜按鈕 -->
       <button class="pixel-btn pixel-btn-accent" id="set-menu-btn">[SET]</button>
-    </header>
+    </div>
 
     <!-- [SET] 下拉收折抽屜選單 -->
     <div id="set-drawer" class="set-drawer hidden">
@@ -78,39 +60,61 @@
       <button class="pixel-btn drawer-btn pixel-btn-accent" id="leaderboard-btn" data-i18n="leaderboard">RANKINGS</button>
     </div>
 
-    <!-- 頂部精簡單行橫排 HUD：Next + Score + Level + Lines + Gem 💎 + Life 🍄 (永久釘頂) -->
-    <div class="top-hud-bar">
-      <div class="hud-item next-item">
-        <span class="hud-lbl" data-i18n="next">NEXT</span>
-        <canvas id="next-canvas" width="36" height="36"></canvas>
-      </div>
-      <div class="hud-item">
-        <span class="hud-lbl" data-i18n="score">SCORE</span>
-        <span class="hud-val" id="hud-score">0</span>
-      </div>
-      <div class="hud-item">
-        <span class="hud-lbl" data-i18n="level">LVL</span>
-        <span class="hud-val" id="hud-level">1</span>
-      </div>
-      <div class="hud-item">
-        <span class="hud-lbl" data-i18n="lines">LINES</span>
-        <span class="hud-val" id="hud-lines">0</span>
-      </div>
-      <div class="hud-item">
-        <span class="hud-lbl">💎</span>
-        <span class="hud-val"><strong id="hud-coins">0</strong>/100</span>
-      </div>
-      <div class="hud-item">
-        <span class="hud-lbl">🍄</span>
-        <span class="hud-val" id="hud-lives" style="color: #2ecc71;">3</span>
-      </div>
+    <!-- 道具 Buff 狀態列與像素進度條 -->
+    <div id="active-powerups" class="active-buffs" style="min-height: 12px;"></div>
+  </header>
+
+  <!-- ============================================================
+       1985 NES 經典全螢幕首頁內容 (置於雙層 HUD 下方)
+       ============================================================ -->
+  <section id="title-screen" class="nes-title-screen">
+    <!-- 經典復古棕色木牌大標題 -->
+    <div class="nes-wood-board">
+      <div class="screw screw-tl"></div>
+      <div class="screw screw-tr"></div>
+      <div class="screw screw-bl"></div>
+      <div class="screw screw-br"></div>
+      <h1 class="nes-logo-text">SUPER<br>TRIS</h1>
+      <div class="nes-copyright">©2026 SUPERTRIS</div>
     </div>
 
-    <!-- 道具 Buff 狀態列與像素進度條 (永久釘頂) -->
-    <div id="active-powerups" class="active-buffs" style="min-height: 16px;"></div>
+    <!-- 經典 1P / 2P 選單按鈕 -->
+    <div class="nes-menu">
+      <button class="nes-menu-item" id="play-single-btn">
+        <span class="nes-cursor">🍄</span>
+        <span data-i18n="play_single">1P player</span>
+      </button>
+      <button class="nes-menu-item" id="play-coop-btn">
+        <span class="nes-cursor">🍄</span>
+        <span data-i18n="play_coop">2P player</span>
+      </button>
+    </div>
 
-    <!-- 棋盤自適應彈性區域 (在剩餘視窗中最大化置中，絕不溢出推擠) -->
-    <main class="game-layout" id="touch-gesture-area">
+    <!-- 底部平整俄羅斯方塊慢速堆疊動態裝飾 -->
+    <div class="nes-stack-bottom">
+      <div class="tetris-stack-wall">
+        <div class="stack-block b-red"></div>
+        <div class="stack-block b-gold"></div>
+        <div class="stack-block b-blue"></div>
+        <div class="stack-block b-green"></div>
+        <div class="stack-block b-gold"></div>
+        <div class="stack-block b-red"></div>
+        <div class="stack-block b-blue"></div>
+        <div class="stack-block b-green"></div>
+      </div>
+      <div class="nes-scenery-ground">
+        <div class="nes-hill"></div>
+        <div class="nes-bush"></div>
+        <div class="nes-ground"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       遊戲主畫面 (Flexbox 自適應棋盤)
+       ============================================================ -->
+  <main id="game-main-area" class="game-main-area hidden">
+    <div class="game-layout" id="touch-gesture-area">
       <div class="canvas-container">
         <canvas id="game-canvas" width="340" height="680"></canvas>
         <div id="item-toast" class="item-toast hidden"></div>
@@ -119,36 +123,43 @@
           <h2 style="color: var(--accent-gold);" data-i18n="pause">PAUSED (TAP TO RESUME)</h2>
         </div>
       </div>
-    </main>
-  </div>
+    </div>
+  </main>
 
-  <!-- 雙人跨裝置配對房間 Modal -->
+  <!-- 雙人跨裝置配對房間 Modal (加寬大器 + 分工規則說明) -->
   <div id="room-modal" class="modal-backdrop hidden">
-    <div class="pixel-modal">
+    <div class="pixel-modal room-modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2 class="modal-title" data-i18n="room_title">雙人跨機連線合作</h2>
-        <button class="pixel-btn pixel-btn-red" id="btn-close-room-modal" style="padding: 2px 6px;">X</button>
+        <button class="pixel-btn pixel-btn-red" id="btn-close-room-modal" style="padding: 4px 8px;">X</button>
       </div>
 
-      <div id="room-setup-view" style="display: flex; flex-direction: column; gap: 12px;">
-        <button class="pixel-btn pixel-btn-accent menu-btn" id="btn-create-room" data-i18n="create_room">建立新房間 (P1 舵手)</button>
+      <div id="room-setup-view" style="display: flex; flex-direction: column; gap: 14px;">
+        <button class="pixel-btn pixel-btn-accent room-action-btn" id="btn-create-room" data-i18n="create_room">建立新房間 (P1 舵手)</button>
         <div style="font-size: 11px; color: #888;">— OR —</div>
         <input type="text" id="join-code-input" class="pixel-input" maxlength="4" placeholder="請輸入 4 位房間碼" data-i18n-placeholder="enter_room_code" />
-        <button class="pixel-btn menu-btn" id="btn-join-room" data-i18n="join_room">加入房間 (P2 引擎)</button>
+        <button class="pixel-btn room-action-btn" id="btn-join-room" data-i18n="join_room">加入房間 (P2 引擎)</button>
       </div>
 
       <div id="room-waiting-view" class="hidden" style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
         <div style="font-size: 13px; color: var(--accent-gold);" data-i18n="your_room_code">房間代碼</div>
         <div id="display-room-code" style="font-size: 32px; letter-spacing: 4px; color: #fff; background: #000; padding: 6px 16px; border: 2px solid var(--accent-gold);">----</div>
-        <div id="room-role-hint" style="font-size: 12px; color: #2ecc71; line-height: 1.5;"></div>
+        <div id="room-role-hint" style="font-size: 13px; color: #2ecc71; line-height: 1.5;"></div>
         <div style="font-size: 12px; color: #aaa;" class="pixel-pulse" data-i18n="waiting_partner">等待隊友加入中...</div>
+      </div>
+
+      <!-- 合作分工規則說明 -->
+      <div class="coop-rules-card">
+        <div class="coop-rules-title" data-i18n="coop_rule_title">🎮 玩法規則：兩人同心操控同一塊方塊！</div>
+        <div class="coop-rules-item" data-i18n="coop_rule_p1">🔹 P1 舵手：負責「左右水平移動」</div>
+        <div class="coop-rules-item" data-i18n="coop_rule_p2">🔸 P2 引擎：負責「單擊旋轉」與「下滑加速」</div>
       </div>
 
       <div id="room-error-msg" style="color: #e74c3c; font-size: 12px;"></div>
     </div>
   </div>
 
-  <!-- Game Over 結算 Modal -->
+  <!-- Game Over 結算 Modal (縮短邊距防跑版) -->
   <div id="game-over-modal" class="modal-backdrop hidden">
     <div class="pixel-modal">
       <h2 class="modal-title" data-i18n="game_over">GAME OVER</h2>
@@ -165,20 +176,20 @@
 
       <input type="text" id="player-name-input" class="pixel-input" maxlength="20" data-i18n-placeholder="enter_name" placeholder="請輸入暱稱" />
 
-      <button class="pixel-btn pixel-btn-accent" id="btn-submit-score" data-i18n="submit_score">上傳紀錄</button>
-      <div style="display: flex; gap: 8px;">
-        <button class="pixel-btn" id="btn-play-again" style="flex: 1;" data-i18n="play_again">再玩一次</button>
-        <button class="pixel-btn pixel-btn-red" id="btn-back-menu" style="flex: 1;" data-i18n="back_menu">主選單</button>
+      <button class="pixel-btn pixel-btn-accent room-action-btn" id="btn-submit-score" data-i18n="submit_score">上傳紀錄</button>
+      <div style="display: flex; gap: 10px;">
+        <button class="pixel-btn" id="btn-play-again" style="flex: 1; padding: 12px 6px;" data-i18n="play_again">再玩一次</button>
+        <button class="pixel-btn pixel-btn-red" id="btn-back-menu" style="flex: 1; padding: 12px 6px;" data-i18n="back_menu">主選單</button>
       </div>
     </div>
   </div>
 
-  <!-- 排行榜 Modal -->
+  <!-- 排行榜 Modal (固定 TOP 10 高度) -->
   <div id="leaderboard-modal" class="modal-backdrop hidden">
-    <div class="pixel-modal">
+    <div class="pixel-modal" style="min-height: 420px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2 class="modal-title" data-i18n="leaderboard">排行榜</h2>
-        <button class="pixel-btn pixel-btn-red" id="leaderboard-close-btn" style="padding: 2px 6px;">X</button>
+        <button class="pixel-btn pixel-btn-red" id="leaderboard-close-btn" style="padding: 4px 8px;">X</button>
       </div>
 
       <div class="lb-tabs">

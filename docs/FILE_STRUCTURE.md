@@ -4,13 +4,13 @@
 
 ```
 SuperTris/
-├── index.html              # 主頁面入口（1985 NES全螢幕首頁、[SET]抽屜、釘頂單行HUD、Modal UI）
+├── index.html              # 主頁面入口（雙層常駐HUD、首頁平整積木動畫、2P規則、Modal UI）
 ├── README.md               # 中英雙語專案說明文件（GitHub 首頁展示用）
 ├── LICENSE                 # MIT 開源授權
 ├── .gitignore              # Git 忽略設定
 ├── .gitattributes          # Git 屬性設定
 ├── css/                    # 樣式模組資料夾
-│   └── style.css           # 1985 NES首頁、俐方體中英字型、Flexbox釘頂防跑版 (336行)
+│   └── style.css           # 雙層HUD、平整積木動畫、俐方體中英字型、加寬2P彈窗 (346行)
 ├── docs/                   # 專案開發與維護說明文件資料夾
 │   ├── DEVLOG.md           # 開發工作日誌（即時記錄每次更動）
 │   └── FILE_STRUCTURE.md   # 本檔案結構清單
@@ -18,18 +18,18 @@ SuperTris/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置
 ├── src/                    # 遊戲核心引擎模組 (上限 400 行/檔)
-│   ├── tetris.js           # 主循環、十字爆破、重力連鎖Combo、首頁切換 (377行)
-│   ├── renderer.js         # 畫面繪製、34px像素大磚塊紋理、置頂迷你 Next 預覽 (109行)
+│   ├── tetris.js           # TIME計時器、雙層HUD同步、💥炸彈方塊、職責標籤 (386行)
+│   ├── renderer.js         # 畫面繪製、34px像素大磚塊、💥炸彈圖示、置頂迷你 Next (118行)
 │   ├── board.js            # 棋盤 Matrix、消行判定、十字爆破、重力塌陷 (173行)
-│   ├── piece.js            # Tetromino 定義、1x1問號/火焰花方塊支援、SRS (157行)
+│   ├── piece.js            # Tetromino 定義、1x1問號/炸彈方塊支援、SRS (157行)
 │   ├── score.js            # 計分、Gem寶石系統、連鎖階梯倍率、99命數上限 (122行)
 │   └── controls.js         # 鍵盤監聽、純手勢引擎、手動下滑 isManual 標記 (166行)
 ├── js/                     # 周邊功能模組 (上限 400 行/檔)
 │   ├── multiplayer.js      # Supabase Realtime 4碼配對、動作廣播與同步 (239行)
 │   ├── mario.js            # 瑪利歐道具、Gem寶石💎、動態倒數進度條 (221行)
 │   ├── audio.js            # Web Audio API 8-bit 合成、30ms 碰地微調音效 (162行)
-│   ├── i18n.js             # 繁中/英雙語字典（寶石💎、按鈕純文字） (168行)
-│   ├── leaderboard.js      # 排行榜 Modal 渲染、NO.1/2/3 標籤、分頁切換 (87行)
+│   ├── i18n.js             # 繁中/英雙語字典（1P/2P精簡、2P規則、職責標籤） (170行)
+│   ├── leaderboard.js      # 排行榜 Modal 渲染、固定 TOP 10、空值 -- 填補 (97行)
 │   ├── supabase-service.js # Supabase REST API / JS SDK 整合與分數上傳 (106行)
 │   ├── storage.js          # 本地 localStorage 離線資料管理 (90行)
 │   ├── config.example.js   # Supabase 設定檔範本（開源公開） (9行)

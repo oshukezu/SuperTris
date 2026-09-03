@@ -1,11 +1,11 @@
-// SuperTris 遊戲核心主引擎 (34px全幅放大、十字爆破、重力連鎖Combo)
+// SuperTris 遊戲核心主引擎 (雙層經典HUD、TIME計時器、💥炸彈方塊與雙人職責標籤)
 class SuperTrisGame {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
     this.nextCanvas = document.getElementById('next-canvas');
     this.cols = 10;
     this.rows = 20;
-    this.cellSize = 34; // 方案 A：34px
+    this.cellSize = 34;
     this.board = new window.Board(this.cols, this.rows);
     this.scoreEngine = new window.ScoreEngine();
     this.bag = new window.RandomBag();
@@ -18,6 +18,7 @@ class SuperTrisGame {
     this.dropCounter = 0;
     this.lastTime = 0;
     this.lastSyncTime = 0;
+    this.elapsedSeconds = 0;
     this.lockDelay = 600;
     this.lockAccumulator = 0;
     this.lockResets = 0;
@@ -25,7 +26,18 @@ class SuperTrisGame {
     this.controls = new window.Controls(this);
     this.initHUDButtons();
     this.initVisibilityListener();
+    this.initInitialHUD();
     if (window.Multiplayer) window.Multiplayer.init(this);
+  }
+
+  initInitialHUD() {
+    const highScore = window.Storage ? window.Storage.getHighScore('single') : 0;
+    const scoreEl = document.getElementById('hud-score');
+    if (scoreEl) scoreEl.textContent = String(highScore).padStart(6, '0');
+    const timeEl = document.getElementById('hud-time');
+    if (timeEl) timeEl.textContent = '--:--';
+    const worldEl = document.getElementById('hud-world');
+    if (worldEl) worldEl.textContent = '1-1';
   }
 
   initHUDButtons() {
@@ -36,30 +48,13 @@ class SuperTrisGame {
       setDrawer?.classList.toggle('hidden');
     });
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('#set-drawer') && !e.target.closest('#set-menu-btn')) {
-        this.hideDrawer();
-      }
+      if (!e.target.closest('#set-drawer') && !e.target.closest('#set-menu-btn')) this.hideDrawer();
     });
-    document.getElementById('pause-btn')?.addEventListener('click', () => {
-      this.hideDrawer();
-      this.togglePause();
-    });
-    document.getElementById('restart-btn')?.addEventListener('click', () => {
-      this.hideDrawer();
-      this.restartGame();
-    });
-    document.getElementById('mute-toggle-btn')?.addEventListener('click', () => {
-      window.SoundEngine.toggleMute();
-      this.updateSoundBtnText();
-    });
-    document.getElementById('lang-toggle-btn')?.addEventListener('click', () => {
-      window.I18N.toggleLanguage();
-      this.updateSoundBtnText();
-    });
-    document.getElementById('leaderboard-btn')?.addEventListener('click', () => {
-      this.hideDrawer();
-      window.Leaderboard.show();
-    });
+    document.getElementById('pause-btn')?.addEventListener('click', () => { this.hideDrawer(); this.togglePause(); });
+    document.getElementById('restart-btn')?.addEventListener('click', () => { this.hideDrawer(); this.restartGame(); });
+    document.getElementById('mute-toggle-btn')?.addEventListener('click', () => { window.SoundEngine.toggleMute(); this.updateSoundBtnText(); });
+    document.getElementById('lang-toggle-btn')?.addEventListener('click', () => { window.I18N.toggleLanguage(); this.updateSoundBtnText(); this.updateRoleBadge(); });
+    document.getElementById('leaderboard-btn')?.addEventListener('click', () => { this.hideDrawer(); window.Leaderboard.show(); });
     document.getElementById('play-single-btn')?.addEventListener('click', () => this.startNewGame('single'));
     document.getElementById('btn-play-again')?.addEventListener('click', () => this.restartGame());
     document.getElementById('btn-back-menu')?.addEventListener('click', () => this.returnToTitle());
@@ -74,6 +69,23 @@ class SuperTrisGame {
   updateSoundBtnText() {
     const btn = document.getElementById('mute-toggle-btn');
     if (btn) btn.textContent = window.SoundEngine.isMuted ? 'SOUND: OFF' : 'SOUND: ON';
+  }
+
+  updateRoleBadge() {
+    const badge = document.getElementById('header-role-badge');
+    if (!badge) return;
+    if (this.mode === 'coop' && window.Multiplayer && window.Multiplayer.isConnected) {
+      badge.classList.remove('hidden');
+      if (window.Multiplayer.role === 'host') {
+        badge.textContent = window.I18N.t('role_badge_p1');
+        badge.classList.remove('badge-engine');
+      } else {
+        badge.textContent = window.I18N.t('role_badge_p2');
+        badge.classList.add('badge-engine');
+      }
+    } else {
+      badge.classList.add('hidden');
+    }
   }
 
   initVisibilityListener() {
@@ -92,6 +104,7 @@ class SuperTrisGame {
     this.lockAccumulator = 0;
     this.lockResets = 0;
     this.dropCounter = 0;
+    this.elapsedSeconds = 0;
     this.hideDrawer();
     this.board.reset();
     this.scoreEngine.reset();
@@ -99,7 +112,8 @@ class SuperTrisGame {
     if (window.Mario) window.Mario.reset();
     document.getElementById('title-screen')?.classList.add('hidden');
     document.getElementById('game-over-modal')?.classList.add('hidden');
-    document.getElementById('game-main-wrapper')?.classList.remove('hidden');
+    document.getElementById('game-main-area')?.classList.remove('hidden');
+    this.updateRoleBadge();
     this.nextPiece = this.bag.next();
     this.spawnPiece(1);
     window.SoundEngine.playIntroBGM();
@@ -115,16 +129,12 @@ class SuperTrisGame {
     this.isPaused = true;
     this.lockAccumulator = 0;
     this.hideDrawer();
-    if (window.Multiplayer && window.Multiplayer.isConnected) {
-      window.Multiplayer.leaveRoom();
-    }
-    const highScore = window.Storage ? window.Storage.getHighScore('single') : 0;
-    const titleScore = document.getElementById('title-score-preview');
-    if (titleScore) titleScore.textContent = String(highScore).padStart(6, '0');
-
+    if (window.Multiplayer && window.Multiplayer.isConnected) window.Multiplayer.leaveRoom();
+    this.initInitialHUD();
+    this.updateRoleBadge();
     document.getElementById('title-screen')?.classList.remove('hidden');
     document.getElementById('game-over-modal')?.classList.add('hidden');
-    document.getElementById('game-main-wrapper')?.classList.add('hidden');
+    document.getElementById('game-main-area')?.classList.add('hidden');
   }
 
   togglePause() {
@@ -143,6 +153,7 @@ class SuperTrisGame {
     this.lockResets = 0;
     if (window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0) {
       this.p1Piece = new window.Piece('Q', false, 1);
+      this.p1Piece.isBomb = true;
     } else {
       let p = this.nextPiece || this.bag.next();
       p.playerIndex = 1;
@@ -225,14 +236,8 @@ class SuperTrisGame {
     const isStar = window.Mario && window.Mario.activeEffects.starMode;
     const hasBomb = window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0;
     if (isStar || hasBomb) {
-      if (isStar) {
-        this.board.laserClearDown(piece.getBlocks());
-        window.SoundEngine.playLineClear(2);
-      }
-      if (hasBomb && window.Mario.consumeFireBomb()) {
-        this.board.explodeCross(piece.x, piece.y); // 十字爆破 (5格)
-        window.SoundEngine.playExplosion();
-      }
+      if (isStar) { this.board.laserClearDown(piece.getBlocks()); window.SoundEngine.playLineClear(2); }
+      if (hasBomb && window.Mario.consumeFireBomb()) { this.board.explodeCross(piece.x, piece.y); window.SoundEngine.playExplosion(); }
       this.checkCascadeLineClears(1);
       this.spawnPiece(1);
       return;
@@ -298,12 +303,7 @@ class SuperTrisGame {
     this.lockAccumulator = 0;
     this.hideDrawer();
     window.SoundEngine.playGameOver();
-    const isNewHigh = window.Storage.recordGame(
-      this.scoreEngine.score,
-      this.scoreEngine.lines,
-      this.scoreEngine.maxCombo,
-      this.mode
-    );
+    const isNewHigh = window.Storage.recordGame(this.scoreEngine.score, this.scoreEngine.lines, this.scoreEngine.maxCombo, this.mode);
     const pct = await window.SupabaseService.calculatePercentile(this.scoreEngine.score, this.mode);
     document.getElementById('go-score').textContent = this.scoreEngine.score.toLocaleString();
     document.getElementById('go-lines').textContent = this.scoreEngine.lines;
@@ -341,6 +341,15 @@ class SuperTrisGame {
     if (this.isPaused || this.isGameOver) return;
     const dt = time - this.lastTime;
     this.lastTime = time;
+
+    this.elapsedSeconds += dt / 1000;
+    const mins = String(Math.floor(this.elapsedSeconds / 60)).padStart(2, '0');
+    const secs = String(Math.floor(this.elapsedSeconds % 60)).padStart(2, '0');
+    const timeEl = document.getElementById('hud-time');
+    if (timeEl) timeEl.textContent = `${mins}:${secs}`;
+
+    const worldEl = document.getElementById('hud-world');
+    if (worldEl) worldEl.textContent = `1-${Math.min(4, Math.floor(this.scoreEngine.lines / 10) + 1)}`;
 
     if (this.isPieceGrounded()) {
       this.lockAccumulator += dt;

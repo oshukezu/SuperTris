@@ -1,87 +1,97 @@
-// SuperTris 排行榜 UI 模組 (Leaderboard Modal) - 無 Emoji
-const Leaderboard = {
-  currentTab: 'single',
+// SuperTris 排行榜 UI 模組 (固定 TOP 10 與空值 -- 填補)
+class LeaderboardUI {
+  constructor() {
+    this.currentMode = 'single';
+    this.initElements();
+  }
 
-  init() {
-    const openBtn = document.getElementById('leaderboard-btn');
-    const closeBtn = document.getElementById('leaderboard-close-btn');
-    const tabSingle = document.getElementById('tab-single');
-    const tabCoop = document.getElementById('tab-coop');
+  initElements() {
+    this.modal = document.getElementById('leaderboard-modal');
+    this.list = document.getElementById('leaderboard-list');
+    this.tabSingle = document.getElementById('tab-single');
+    this.tabCoop = document.getElementById('tab-coop');
+    this.btnClose = document.getElementById('leaderboard-close-btn');
 
-    if (openBtn) openBtn.onclick = () => this.show();
-    if (closeBtn) closeBtn.onclick = () => this.hide();
-    if (tabSingle) tabSingle.onclick = () => this.switchTab('single');
-    if (tabCoop) tabCoop.onclick = () => this.switchTab('coop');
-  },
+    this.tabSingle?.addEventListener('click', () => this.switchTab('single'));
+    this.tabCoop?.addEventListener('click', () => this.switchTab('coop'));
+    this.btnClose?.addEventListener('click', () => this.hide());
+  }
 
-  show() {
-    const modal = document.getElementById('leaderboard-modal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      this.loadAndRender();
-    }
-  },
+  init() {}
+
+  show(mode = 'single') {
+    this.currentMode = mode;
+    this.modal?.classList.remove('hidden');
+    this.switchTab(mode);
+  }
 
   hide() {
-    const modal = document.getElementById('leaderboard-modal');
-    if (modal) modal.classList.add('hidden');
-  },
+    this.modal?.classList.add('hidden');
+  }
 
-  switchTab(tab) {
-    this.currentTab = tab;
-    document.getElementById('tab-single')?.classList.toggle('active', tab === 'single');
-    document.getElementById('tab-coop')?.classList.toggle('active', tab === 'coop');
-    this.loadAndRender();
-  },
+  switchTab(mode) {
+    this.currentMode = mode;
+    this.tabSingle?.classList.toggle('active', mode === 'single');
+    this.tabCoop?.classList.toggle('active', mode === 'coop');
+    this.loadScores();
+  }
 
-  async loadAndRender() {
-    const container = document.getElementById('leaderboard-list');
-    if (!container) return;
+  async loadScores() {
+    if (!this.list) return;
+    this.list.innerHTML = `<div style="text-align:center; padding:15px; color:#aaa;">LOADING...</div>`;
 
-    container.innerHTML = '<div class="pixel-loading">LOADING...</div>';
+    const scores = await window.SupabaseService.getTopScores(this.currentMode, 10);
+    this.renderScores(scores);
+  }
 
-    const currentName = window.Storage.getPlayerName();
-    const data = await window.SupabaseService.getLeaderboard(this.currentTab);
-
-    if (!data || data.length === 0) {
-      container.innerHTML = `<div class="pixel-empty">${window.I18N.t('close') === 'Close' ? 'No records yet. Be the first!' : '尚無紀錄，快來挑戰！'}</div>`;
-      return;
-    }
+  renderScores(scores) {
+    if (!this.list) return;
 
     let html = `
       <div class="lb-row lb-header">
-        <span class="lb-col-rank">${window.I18N.t('rank')}</span>
-        <span class="lb-col-name">${window.I18N.t('player')}</span>
-        <span class="lb-col-score">${window.I18N.t('score')}</span>
-        <span class="lb-col-lines">${window.I18N.t('lines')}</span>
+        <span style="width: 18%; text-align: left;">${window.I18N.t('rank')}</span>
+        <span style="width: 38%; text-align: left;">${window.I18N.t('player')}</span>
+        <span style="width: 26%; text-align: right;">${window.I18N.t('score')}</span>
+        <span style="width: 18%; text-align: right;">${window.I18N.t('lines')}</span>
       </div>
     `;
 
-    data.forEach((item, index) => {
-      const isMe = currentName && item.nickname.toLowerCase() === currentName.toLowerCase();
-      const rank = index + 1;
-      let badge = `NO.${rank}`;
-      if (rank === 1) badge = '[1ST]';
-      else if (rank === 2) badge = '[2ND]';
-      else if (rank === 3) badge = '[3RD]';
+    const rankBadges = ['[1ST]', '[2ND]', '[3RD]', '[4TH]', '[5TH]', '[6TH]', '[7TH]', '[8TH]', '[9TH]', '[10TH]'];
 
-      html += `
-        <div class="lb-row ${isMe ? 'lb-me' : ''}">
-          <span class="lb-col-rank">${badge}</span>
-          <span class="lb-col-name">${this.escapeHtml(item.nickname)}</span>
-          <span class="lb-col-score">${item.score.toLocaleString()}</span>
-          <span class="lb-col-lines">${item.lines_cleared || 0}</span>
-        </div>
-      `;
-    });
+    // 固定渲染 10 行，不足 10 筆自動補滿 --
+    for (let i = 0; i < 10; i++) {
+      const item = scores[i];
+      const badge = rankBadges[i];
+      const isGold = i === 0;
 
-    container.innerHTML = html;
-  },
+      if (item) {
+        const name = (item.nickname || 'Mario').slice(0, 8);
+        const score = Number(item.score || 0).toLocaleString();
+        const lines = item.lines_cleared || 0;
+        const color = isGold ? '#f1c40f' : '#fff';
 
-  escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        html += `
+          <div class="lb-row" style="color: ${color};">
+            <span style="width: 18%; text-align: left;">${badge}</span>
+            <span style="width: 38%; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${name}</span>
+            <span style="width: 26%; text-align: right;">${score}</span>
+            <span style="width: 18%; text-align: right;">${lines}</span>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="lb-row" style="color: #666;">
+            <span style="width: 18%; text-align: left;">${badge}</span>
+            <span style="width: 38%; text-align: left;">--</span>
+            <span style="width: 26%; text-align: right;">--</span>
+            <span style="width: 18%; text-align: right;">--</span>
+          </div>
+        `;
+      }
+    }
+
+    this.list.innerHTML = html;
   }
-};
+}
 
-window.Leaderboard = Leaderboard;
+window.Leaderboard = new LeaderboardUI();
