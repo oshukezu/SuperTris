@@ -1,11 +1,15 @@
-# 敏感設定與本地配置
-js/config.js
+# Dependencies
+node_modules/
 
-# 作業系統檔案
+# OS Files
 .DS_Store
 Thumbs.db
 
-# 編輯器暫存
+# IDE & Editor
 .vscode/
 .idea/
 *.swp
+*.swo
+
+# Local build / scratch
+scratch/
