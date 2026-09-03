@@ -1,239 +1,190 @@
-// SuperTris 跨裝置雙人連線配對與分工同步模組 (Multiplayer Module)
-const Multiplayer = {
-  channel: null,
-  roomCode: '',
-  role: null, // 'host' (P1: 移動) | 'guest' (P2: 旋轉/加速)
-  isConnected: false,
-  gameInstance: null,
+// SuperTris 多人連線模組 (Supabase Realtime 權威狀態同步與雙向暫停)
+class MultiplayerManager {
+  constructor() {
+    this.game = null;
+    this.channel = null;
+    this.roomCode = null;
+    this.role = null; // 'host' (P1) 或 'guest' (P2)
+    this.isConnected = false;
+  }
 
-  init(gameInstance) {
-    this.gameInstance = gameInstance;
-    this.bindEvents();
-  },
+  init(game) {
+    this.game = game;
+    this.initUI();
+  }
 
-  bindEvents() {
-    document.getElementById('play-coop-btn')?.addEventListener('click', () => this.showRoomModal());
-    document.getElementById('btn-close-room-modal')?.addEventListener('click', () => this.hideRoomModal());
-    document.getElementById('btn-create-room')?.addEventListener('click', () => this.createRoom());
-    document.getElementById('btn-join-room')?.addEventListener('click', () => this.joinRoom());
-  },
+  initUI() {
+    const playCoopBtn = document.getElementById('play-coop-btn');
+    const roomModal = document.getElementById('room-modal');
+    const btnClose = document.getElementById('btn-close-room-modal');
+    const btnCreate = document.getElementById('btn-create-room');
+    const btnJoin = document.getElementById('btn-join-room');
+    const inputCode = document.getElementById('join-code-input');
 
-  showRoomModal() {
-    const modal = document.getElementById('room-modal');
-    if (modal) modal.classList.remove('hidden');
-    this.resetState();
-  },
+    playCoopBtn?.addEventListener('click', () => {
+      roomModal?.classList.remove('hidden');
+      this.resetRoomModal();
+    });
 
-  hideRoomModal() {
-    const modal = document.getElementById('room-modal');
-    if (modal) modal.classList.add('hidden');
-    this.leaveRoom();
-  },
+    btnClose?.addEventListener('click', () => {
+      roomModal?.classList.add('hidden');
+      this.leaveRoom();
+    });
 
-  resetState() {
+    btnCreate?.addEventListener('click', () => this.createRoom());
+    btnJoin?.addEventListener('click', () => {
+      const code = inputCode ? inputCode.value.trim() : '';
+      if (code.length === 4) {
+        this.joinRoom(code);
+      } else {
+        this.showError(window.I18N.t('invalid_room_code'));
+      }
+    });
+  }
+
+  resetRoomModal() {
     document.getElementById('room-setup-view')?.classList.remove('hidden');
     document.getElementById('room-waiting-view')?.classList.add('hidden');
-    const input = document.getElementById('join-code-input');
-    if (input) input.value = '';
-    const err = document.getElementById('room-error-msg');
-    if (err) err.textContent = '';
-  },
-
-  // 1. 建立房間 (Host / P1 - 舵手)
-  async createRoom() {
-    if (!window.SupabaseService.isAvailable()) {
-      this.showError(window.I18N.t('connection_failed'));
-      return;
-    }
-
-    this.role = 'host';
-    this.roomCode = Math.floor(1000 + Math.random() * 9000).toString(); // 隨機 4 位數
-
-    document.getElementById('room-setup-view')?.classList.add('hidden');
-    document.getElementById('room-waiting-view')?.classList.remove('hidden');
-    document.getElementById('display-room-code').textContent = this.roomCode;
-    document.getElementById('room-role-hint').textContent = window.I18N.t('room_p1_hint');
-
-    this.subscribeChannel(this.roomCode);
-  },
-
-  // 2. 加入房間 (Guest / P2 - 引擎)
-  async joinRoom() {
-    if (!window.SupabaseService.isAvailable()) {
-      this.showError(window.I18N.t('connection_failed'));
-      return;
-    }
-
-    const input = document.getElementById('join-code-input');
-    const code = input ? input.value.trim() : '';
-    if (!code || code.length !== 4 || !/^\d{4}$/.test(code)) {
-      this.showError(window.I18N.t('invalid_room_code'));
-      return;
-    }
-
-    this.role = 'guest';
-    this.roomCode = code;
-
-    document.getElementById('room-setup-view')?.classList.add('hidden');
-    document.getElementById('room-waiting-view')?.classList.remove('hidden');
-    document.getElementById('display-room-code').textContent = this.roomCode;
-    document.getElementById('room-role-hint').textContent = window.I18N.t('room_p2_hint');
-
-    this.subscribeChannel(this.roomCode, true);
-  },
-
-  // 訂閱 Supabase Realtime 廣播頻道
-  subscribeChannel(code, isGuest = false) {
-    const client = window.SupabaseService.client;
-    if (!client) return;
-
-    if (this.channel) {
-      client.removeChannel(this.channel);
-    }
-
-    this.channel = client.channel(`supertris-room-${code}`, {
-      config: { broadcast: { self: false } }
-    });
-
-    this.channel
-      .on('broadcast', { event: 'coop_action' }, (payload) => this.handleRemoteAction(payload))
-      .on('broadcast', { event: 'player_joined' }, () => {
-        if (this.role === 'host') {
-          // 房主收到加入通知，廣播啟動遊戲！
-          this.channel.send({
-            type: 'broadcast',
-            event: 'game_start',
-            payload: { timestamp: Date.now() }
-          });
-          this.startGameAsHost();
-        }
-      })
-      .on('broadcast', { event: 'game_start' }, () => {
-        if (this.role === 'guest') {
-          this.startGameAsGuest();
-        }
-      })
-      .on('broadcast', { event: 'state_sync' }, (payload) => {
-        if (this.role === 'guest' && payload.state) {
-          this.syncStateToGuest(payload.state);
-        }
-      })
-      .on('broadcast', { event: 'partner_left' }, () => {
-        this.handlePartnerLeft();
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          this.isConnected = true;
-          if (isGuest) {
-            // Guest 送出加入信號
-            this.channel.send({
-              type: 'broadcast',
-              event: 'player_joined',
-              payload: { timestamp: Date.now() }
-            });
-          }
-        }
-      });
-  },
-
-  startGameAsHost() {
-    this.hideRoomModal();
-    if (this.gameInstance) {
-      this.gameInstance.startNewGame('coop');
-    }
-  },
-
-  startGameAsGuest() {
-    this.hideRoomModal();
-    if (this.gameInstance) {
-      this.gameInstance.startNewGame('coop');
-    }
-  },
-
-  // 發送本機動作給遠端夥伴
-  sendAction(actionType, data = {}) {
-    if (!this.channel || !this.isConnected) return;
-    this.channel.send({
-      type: 'broadcast',
-      event: 'coop_action',
-      payload: { action: actionType, data, role: this.role }
-    });
-  },
-
-  // 接收並處理遠端動作
-  handleRemoteAction(payload) {
-    if (!payload || !payload.payload) return;
-    const { action, data, role } = payload.payload;
-    if (role === this.role) return;
-
-    if (this.role === 'host') {
-      // 房主 (P1) 處理來自 P2 (Guest) 的動作：旋轉 / 下滑加速
-      if (action === 'rotate') {
-        this.gameInstance.rotateCurrentPiece(data.dir || 1, 1);
-      } else if (action === 'soft_drop') {
-        this.gameInstance.moveCurrentPiece(0, 1, 1);
-      }
-    } else {
-      // 訪客 (P2) 處理來自 P1 (Host) 的動作：左右位移
-      if (action === 'move') {
-        this.gameInstance.moveCurrentPiece(data.dx, 0, 1);
-      }
-    }
-  },
-
-  // 房主定期廣播盤面權威狀態 (150ms 節流)
-  broadcastState(state) {
-    if (this.role !== 'host' || !this.channel || !this.isConnected) return;
-    this.channel.send({
-      type: 'broadcast',
-      event: 'state_sync',
-      payload: { state }
-    });
-  },
-
-  syncStateToGuest(state) {
-    if (!this.gameInstance) return;
-    this.gameInstance.scoreEngine.score = state.score;
-    this.gameInstance.scoreEngine.lines = state.lines;
-    this.gameInstance.scoreEngine.level = state.level;
-    this.gameInstance.scoreEngine.coins = state.coins;
-    this.gameInstance.scoreEngine.lives = state.lives;
-    this.gameInstance.scoreEngine.updateHUD();
-
-    if (state.grid) {
-      this.gameInstance.board.grid = state.grid;
-    }
-  },
-
-  handlePartnerLeft() {
-    alert(window.I18N.t('coop_partner_left'));
-    this.leaveRoom();
-    if (this.gameInstance) {
-      this.gameInstance.returnToTitle();
-    }
-  },
-
-  leaveRoom() {
-    if (this.channel && this.isConnected) {
-      this.channel.send({
-        type: 'broadcast',
-        event: 'partner_left',
-        payload: {}
-      });
-      if (window.SupabaseService.client) {
-        window.SupabaseService.client.removeChannel(this.channel);
-      }
-    }
-    this.channel = null;
-    this.isConnected = false;
-    this.role = null;
-    this.roomCode = '';
-  },
+    this.showError('');
+  }
 
   showError(msg) {
     const err = document.getElementById('room-error-msg');
     if (err) err.textContent = msg;
   }
-};
 
-window.Multiplayer = Multiplayer;
+  generateRoomCode() {
+    return String(Math.floor(1000 + Math.random() * 9000));
+  }
+
+  async createRoom() {
+    if (!window.SupabaseService.isConfigured()) {
+      this.showError(window.I18N.t('connection_failed'));
+      return;
+    }
+
+    this.role = 'host';
+    this.roomCode = this.generateRoomCode();
+    this.showWaitingView(this.roomCode, 'P1 (Steerer)');
+    this.subscribeChannel(this.roomCode);
+  }
+
+  async joinRoom(code) {
+    if (!window.SupabaseService.isConfigured()) {
+      this.showError(window.I18N.t('connection_failed'));
+      return;
+    }
+
+    this.role = 'guest';
+    this.roomCode = code;
+    this.showWaitingView(this.roomCode, 'P2 (Engine)');
+    this.subscribeChannel(this.roomCode);
+  }
+
+  showWaitingView(code, roleText) {
+    document.getElementById('room-setup-view')?.classList.add('hidden');
+    document.getElementById('room-waiting-view')?.classList.remove('hidden');
+    const codeEl = document.getElementById('display-room-code');
+    if (codeEl) codeEl.textContent = code;
+    const roleEl = document.getElementById('room-role-hint');
+    if (roleEl) roleEl.textContent = roleText;
+  }
+
+  subscribeChannel(code) {
+    const client = window.SupabaseService.client;
+    if (!client) return;
+
+    if (this.channel) client.removeChannel(this.channel);
+
+    this.channel = client.channel(`supertris-room-${code}`, {
+      config: { presence: { key: this.role } }
+    });
+
+    this.channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = this.channel.presenceState();
+        const users = Object.keys(state);
+        if (users.includes('host') && users.includes('guest')) {
+          this.onBothPlayersReady();
+        }
+      })
+      .on('presence', { event: 'leave' }, ({ key }) => {
+        if (this.isConnected) {
+          if (window.Mario) window.Mario.showToast(window.I18N.t('coop_partner_left'));
+          this.leaveRoom();
+        }
+      })
+      .on('broadcast', { event: 'game-action' }, ({ payload }) => {
+        this.handleRemoteAction(payload);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await this.channel.track({ online_at: new Date().toISOString() });
+        }
+      });
+  }
+
+  onBothPlayersReady() {
+    this.isConnected = true;
+    document.getElementById('room-modal')?.classList.add('hidden');
+    if (this.game) {
+      this.game.startNewGame('coop');
+    }
+  }
+
+  sendAction(actionData) {
+    if (!this.channel || !this.isConnected) return;
+    this.channel.send({
+      type: 'broadcast',
+      event: 'game-action',
+      payload: { ...actionData, from: this.role }
+    });
+  }
+
+  // 雙向即時暫停/繼續權威同步
+  sendPauseSync(isPaused) {
+    if (!this.isConnected) return;
+    this.sendAction({ action: 'sync_pause', isPaused });
+  }
+
+  handleRemoteAction(payload) {
+    if (!this.game || !this.isConnected) return;
+
+    if (payload.action === 'sync_pause') {
+      this.game.applyPauseSync(payload.isPaused);
+      return;
+    }
+
+    if (this.role === 'host') {
+      if (payload.action === 'rotate') this.game.rotateCurrentPiece(payload.dir || 1, 2);
+      if (payload.action === 'soft_drop') this.game.moveCurrentPiece(0, 1, 2, true);
+    } else {
+      if (payload.action === 'sync_state') {
+        this.game.scoreEngine.score = payload.score;
+        this.game.scoreEngine.lines = payload.lines;
+        this.game.scoreEngine.level = payload.level;
+        this.game.scoreEngine.gems = payload.coins;
+        this.game.scoreEngine.lives = payload.lives;
+        this.game.board.grid = payload.grid;
+      }
+    }
+  }
+
+  broadcastState(state) {
+    if (this.role === 'host') {
+      this.sendAction({ action: 'sync_state', ...state });
+    }
+  }
+
+  leaveRoom() {
+    this.isConnected = false;
+    if (this.channel) {
+      this.channel.unsubscribe();
+      this.channel = null;
+    }
+    this.roomCode = null;
+    this.role = null;
+  }
+}
+
+window.Multiplayer = new MultiplayerManager();

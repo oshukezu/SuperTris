@@ -141,12 +141,14 @@
         <canvas id="game-canvas" width="340" height="680"></canvas>
         <div id="item-toast" class="item-toast hidden"></div>
         <div id="tetris-firework-fx" class="tetris-fx hidden"></div>
-        <div id="pause-overlay" class="modal-backdrop hidden" style="position: absolute; cursor: pointer;">
-          <h2 style="color: var(--accent-gold);" data-i18n="pause">PAUSED (TAP TO RESUME)</h2>
-        </div>
       </div>
     </div>
   </main>
+
+  <!-- 全螢幕暫停遮罩 (點擊全螢幕任意像素皆可無縫恢復) -->
+  <div id="pause-overlay" class="modal-backdrop hidden" style="cursor: pointer; z-index: 92;">
+    <h2 style="color: var(--accent-gold); font-size: 16px;" data-i18n="pause">PAUSED (TAP ANYWHERE TO RESUME)</h2>
+  </div>
 
   <!-- 雙人跨裝置配對房間 Modal (加寬大器 + 分工規則說明) -->
   <div id="room-modal" class="modal-backdrop hidden">
