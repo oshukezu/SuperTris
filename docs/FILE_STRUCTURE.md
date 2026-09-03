@@ -4,8 +4,8 @@
 
 ```
 SuperTris/
-├── index.html              # 主頁面入口（雙層常駐HUD、首頁平整積木動畫、2P規則、Modal UI）
-├── style.css               # 雙層HUD、21px選單、24px積木堆疊動畫、終極防橫移鎖死 (346行)
+├── index.html              # 主頁面入口（純藍底懸浮第一行、10秒1x4消4行Demo、Modal UI）
+├── style.css               # 純藍底懸浮樣式、10秒Demo動畫、雙層HUD、21px選單 (358行)
 ├── README.md               # 中英雙語專案說明文件（GitHub 首頁展示用）
 ├── LICENSE                 # MIT 開源授權
 ├── .gitignore              # Git 忽略設定
@@ -17,7 +17,7 @@ SuperTris/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置
 ├── src/                    # 遊戲核心引擎模組 (上限 400 行/檔)
-│   ├── tetris.js           # TIME計時器、雙層HUD同步、💥炸彈方塊、MAIN MENU切換 (386行)
+│   ├── tetris.js           # in-title class切換、TIME計時器、雙層HUD同步、💥炸彈 (391行)
 │   ├── renderer.js         # 畫面繪製、34px像素大磚塊、💥炸彈圖示、置頂迷你 Next (118行)
 │   ├── board.js            # 棋盤 Matrix、消行判定、十字爆破、重力塌陷 (173行)
 │   ├── piece.js            # Tetromino 定義、1x1問號/炸彈方塊支援、SRS (157行)

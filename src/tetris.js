@@ -110,9 +110,12 @@ class SuperTrisGame {
     this.scoreEngine.reset();
     this.bag = new window.RandomBag();
     if (window.Mario) window.Mario.reset();
+
+    document.body.classList.remove('in-title');
     document.getElementById('title-screen')?.classList.add('hidden');
     document.getElementById('game-over-modal')?.classList.add('hidden');
     document.getElementById('game-main-area')?.classList.remove('hidden');
+
     this.updateRoleBadge();
     this.nextPiece = this.bag.next();
     this.spawnPiece(1);
@@ -132,6 +135,8 @@ class SuperTrisGame {
     if (window.Multiplayer && window.Multiplayer.isConnected) window.Multiplayer.leaveRoom();
     this.initInitialHUD();
     this.updateRoleBadge();
+
+    document.body.classList.add('in-title');
     document.getElementById('title-screen')?.classList.remove('hidden');
     document.getElementById('game-over-modal')?.classList.add('hidden');
     document.getElementById('game-main-area')?.classList.add('hidden');

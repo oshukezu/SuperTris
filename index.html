@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cubic-11@1.010/fonts/web/style.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="in-title">
 
   <!-- 橫向鎖定警告 (禁止橫向操作) -->
   <div id="landscape-warning">
@@ -16,10 +16,10 @@
   </div>
 
   <!-- ============================================================
-       頂部雙層全域常駐 HUD (首頁與遊戲中完全沿用，位置與字級 100% 相同)
+       頂部雙層全域常駐 HUD (首頁純藍底懸浮第一行，進遊戲展開第二行)
        ============================================================ -->
   <header class="global-header-wrapper">
-    <!-- 第一行：NES 經典四欄數據 (MARIO SCORE | 💎x00 | WORLD 1-1 | TIME) -->
+    <!-- 第一行：NES 經典四欄數據 (全站位置與字級 100% 固定) -->
     <div class="nes-top-hud-row">
       <div class="hud-col"><span class="hud-sub">MARIO</span><span id="hud-score" class="hud-main">000000</span></div>
       <div class="hud-col"><span class="hud-sub">💎</span><span class="hud-main"><strong id="hud-coins">0</strong>/100</span></div>
@@ -27,7 +27,7 @@
       <div class="hud-col"><span class="hud-sub">TIME</span><span id="hud-time" class="hud-main">--:--</span></div>
     </div>
 
-    <!-- 第二行：輔助資訊橫排 (NEXT 迷你方塊 | LINES | 🍄 LIFE | 雙人職責標籤 | [SET] 按鈕) -->
+    <!-- 第二行：輔助資訊橫排 (首頁時自動隱藏，進遊戲時展開) -->
     <div class="sub-hud-row">
       <div class="sub-hud-left">
         <div class="sub-hud-item">
@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <!-- 雙人模式專屬醒目職責標籤 (預設隱藏) -->
+      <!-- 雙人模式專屬醒目職責標籤 -->
       <div id="header-role-badge" class="header-role-badge hidden">P1 負責移動 ↔</div>
 
       <!-- 右側 [SET] 齒輪抽屜按鈕 -->
@@ -65,7 +65,7 @@
   </header>
 
   <!-- ============================================================
-       1985 NES 經典全螢幕首頁內容 (置於雙層 HUD 下方)
+       1985 NES 經典全螢幕首頁內容 (置於頂部第一行下方)
        ============================================================ -->
   <section id="title-screen" class="nes-title-screen">
     <!-- 經典復古棕色木牌大標題 -->
@@ -78,7 +78,7 @@
       <div class="nes-copyright">©2026 SUPERTRIS</div>
     </div>
 
-    <!-- 經典 1P / 2P 選單按鈕 -->
+    <!-- 經典 1P / 2P 選單按鈕 (21px Bold) -->
     <div class="nes-menu">
       <button class="nes-menu-item" id="play-single-btn">
         <span class="nes-cursor">🍄</span>
@@ -90,18 +90,43 @@
       </button>
     </div>
 
-    <!-- 底部平整俄羅斯方塊慢速堆疊動態裝飾 -->
+    <!-- 底部 10 秒 1x4 堆疊消 4 行 Demo 動畫 -->
     <div class="nes-stack-bottom">
-      <div class="tetris-stack-wall">
-        <div class="stack-block b-red"></div>
-        <div class="stack-block b-gold"></div>
-        <div class="stack-block b-blue"></div>
-        <div class="stack-block b-green"></div>
-        <div class="stack-block b-gold"></div>
-        <div class="stack-block b-red"></div>
-        <div class="stack-block b-blue"></div>
-        <div class="stack-block b-green"></div>
+      <div class="demo-tetris-grid">
+        <!-- 4 層 9 寬積木牆 (最右側第 10 格空出) -->
+        <div class="demo-wall-row r4">
+          <div class="d-cell b-red d-1"></div><div class="d-cell b-gold d-2"></div><div class="d-cell b-blue d-3"></div>
+          <div class="d-cell b-green d-4"></div><div class="d-cell b-red d-5"></div><div class="d-cell b-gold d-6"></div>
+          <div class="d-cell b-blue d-7"></div><div class="d-cell b-green d-8"></div><div class="d-cell b-red d-9"></div>
+          <div class="d-cell empty"></div>
+        </div>
+        <div class="demo-wall-row r3">
+          <div class="d-cell b-gold d-10"></div><div class="d-cell b-blue d-11"></div><div class="d-cell b-green d-12"></div>
+          <div class="d-cell b-red d-13"></div><div class="d-cell b-gold d-14"></div><div class="d-cell b-blue d-15"></div>
+          <div class="d-cell b-green d-16"></div><div class="d-cell b-red d-17"></div><div class="d-cell b-gold d-18"></div>
+          <div class="d-cell empty"></div>
+        </div>
+        <div class="demo-wall-row r2">
+          <div class="d-cell b-blue d-19"></div><div class="d-cell b-green d-20"></div><div class="d-cell b-red d-21"></div>
+          <div class="d-cell b-gold d-22"></div><div class="d-cell b-blue d-23"></div><div class="d-cell b-green d-24"></div>
+          <div class="d-cell b-red d-25"></div><div class="d-cell b-gold d-26"></div><div class="d-cell b-blue d-27"></div>
+          <div class="d-cell empty"></div>
+        </div>
+        <div class="demo-wall-row r1">
+          <div class="d-cell b-green d-28"></div><div class="d-cell b-red d-29"></div><div class="d-cell b-gold d-30"></div>
+          <div class="d-cell b-blue d-31"></div><div class="d-cell b-green d-32"></div><div class="d-cell b-red d-33"></div>
+          <div class="d-cell b-gold d-34"></div><div class="d-cell b-blue d-35"></div><div class="d-cell b-green d-36"></div>
+          <div class="d-cell empty"></div>
+        </div>
+        <!-- 1x4 垂直長條方塊 (7.5s 直落插進第 10 格空槽) -->
+        <div class="demo-i-piece">
+          <div class="d-cell b-cyan"></div>
+          <div class="d-cell b-cyan"></div>
+          <div class="d-cell b-cyan"></div>
+          <div class="d-cell b-cyan"></div>
+        </div>
       </div>
+
       <div class="nes-scenery-ground">
         <div class="nes-hill"></div>
         <div class="nes-bush"></div>
@@ -159,7 +184,7 @@
     </div>
   </div>
 
-  <!-- Game Over 結算 Modal (縮短邊距防跑版) -->
+  <!-- Game Over 結算 Modal -->
   <div id="game-over-modal" class="modal-backdrop hidden">
     <div class="pixel-modal">
       <h2 class="modal-title" data-i18n="game_over">GAME OVER</h2>
