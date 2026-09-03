@@ -265,6 +265,20 @@ body.in-title .active-buffs {
   100% { opacity: 0; filter: brightness(2); }
 }
 
+/* 8-Bit 蘑菇跳動呼吸動畫 (P2 等待) */
+.mush-bounce-1 {
+  display: inline-block;
+  animation: mushBounce 0.6s infinite alternate ease-in-out;
+}
+.mush-bounce-2 {
+  display: inline-block;
+  animation: mushBounce 0.6s infinite alternate ease-in-out 0.3s;
+}
+@keyframes mushBounce {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-8px) scale(1.15); }
+}
+
 /* 10 秒 1x4 堆疊消 4 行 Demo 動畫 */
 .nes-stack-bottom {
   width: 100%;

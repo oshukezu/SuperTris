@@ -377,7 +377,8 @@ class SuperTrisGame {
       }
     }
     if (window.Mario) window.Mario.tickTimers(dt / 1000);
-    if (time - this.lastSyncTime > 150) {
+    // 心跳調整為 300ms 節省 60% 流量
+    if (time - this.lastSyncTime > 300) {
       if (window.Multiplayer && window.Multiplayer.role === 'host') {
         window.Multiplayer.broadcastState({
           score: this.scoreEngine.score,

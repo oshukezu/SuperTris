@@ -147,12 +147,21 @@
       </div>
 
       <!-- 上半部：產生代碼 (P1 房主) -->
-      <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
+      <div id="room-share-section" style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
         <div style="font-size: 13px; color: var(--accent-gold); font-weight: bold;" data-i18n="share_code_title">產生代碼</div>
         <div id="display-room-code" style="font-size: 42px; font-weight: bold; letter-spacing: 6px; color: #ffffff; background: #000; padding: 6px 18px; border: 2px solid var(--accent-gold);">8888</div>
         <div id="room-status-text" style="font-size: 12px; color: #aaa;" class="pixel-pulse" data-i18n="waiting_partner">等待隊友加入中...</div>
         <!-- P1 房主專屬發車開局按鈕 (隊友加入後亮起) -->
         <button id="btn-start-coop" class="pixel-btn pixel-btn-accent hidden" style="width: 100%; padding: 12px; font-size: 14px; font-weight: bold; margin-top: 4px;" data-i18n="start_game_btn">開始遊戲</button>
+      </div>
+
+      <!-- P2 連線等待畫面 (隱藏代碼黑框，替換為 8-Bit 蘑菇跳動 + 醒目文字) -->
+      <div id="room-p2-waiting-view" class="hidden" style="display: flex; flex-direction: column; gap: 12px; align-items: center; padding: 16px 0;">
+        <div class="mush-bounce-container" style="font-size: 36px; display: flex; gap: 12px;">
+          <span class="mush-bounce-1">🍄</span>
+          <span class="mush-bounce-2">🍄</span>
+        </div>
+        <div style="font-size: 15px; color: var(--accent-gold); font-weight: bold; letter-spacing: 1px;" class="pixel-pulse" data-i18n="waiting_host">等待 1p 開始</div>
       </div>
 
       <!-- 分隔字 -->

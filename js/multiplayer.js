@@ -1,10 +1,10 @@
-// SuperTris 多人連線模組 (P1開局握手、同方塊鏡像同步、電話鍵盤)
+// SuperTris 多人連線模組 (P1開局握手、同方塊鏡像同步、P2蘑菇等待)
 class MultiplayerManager {
   constructor() {
     this.game = null;
     this.channel = null;
     this.roomCode = null;
-    this.role = null; // 'host' (P1) 或 'guest' (P2)
+    this.role = null;
     this.isConnected = false;
   }
 
@@ -39,7 +39,6 @@ class MultiplayerManager {
       }
     });
 
-    // P1 房主點擊「開始遊戲」發車
     btnStart?.addEventListener('click', () => {
       if (this.role === 'host' && this.isConnected) {
         this.sendAction({ action: 'start_coop_game' });
@@ -64,11 +63,15 @@ class MultiplayerManager {
     this.roomCode = this.generateRoomCode();
     const codeEl = document.getElementById('display-room-code');
     if (codeEl) codeEl.textContent = this.roomCode;
+
     const statusEl = document.getElementById('room-status-text');
     if (statusEl) {
       statusEl.textContent = window.I18N.t('waiting_partner');
       statusEl.style.color = '#aaa';
     }
+
+    document.getElementById('room-share-section')?.classList.remove('hidden');
+    document.getElementById('room-p2-waiting-view')?.classList.add('hidden');
     document.getElementById('btn-start-coop')?.classList.add('hidden');
     document.getElementById('room-join-section')?.classList.remove('hidden');
     document.getElementById('room-divider')?.classList.remove('hidden');
@@ -104,13 +107,13 @@ class MultiplayerManager {
 
     this.role = 'guest';
     this.roomCode = code;
-    const statusEl = document.getElementById('room-status-text');
-    if (statusEl) {
-      statusEl.textContent = window.I18N.t('waiting_host');
-      statusEl.style.color = '#f1c40f';
-    }
+
+    // P2 畫面切換：隱藏產生代碼與輸入框，展示 🍄 蘑菇跳動等待區
+    document.getElementById('room-share-section')?.classList.add('hidden');
     document.getElementById('room-join-section')?.classList.add('hidden');
     document.getElementById('room-divider')?.classList.add('hidden');
+    document.getElementById('room-p2-waiting-view')?.classList.remove('hidden');
+
     this.subscribeChannel(this.roomCode);
   }
 
@@ -149,8 +152,8 @@ class MultiplayerManager {
 
   onBothPlayersConnected() {
     this.isConnected = true;
-    const statusEl = document.getElementById('room-status-text');
     if (this.role === 'host') {
+      const statusEl = document.getElementById('room-status-text');
       if (statusEl) {
         statusEl.textContent = window.I18N.t('partner_connected');
         statusEl.style.color = '#2ecc71';
@@ -158,11 +161,6 @@ class MultiplayerManager {
       document.getElementById('btn-start-coop')?.classList.remove('hidden');
       document.getElementById('room-join-section')?.classList.add('hidden');
       document.getElementById('room-divider')?.classList.add('hidden');
-    } else {
-      if (statusEl) {
-        statusEl.textContent = window.I18N.t('waiting_host');
-        statusEl.style.color = '#f1c40f';
-      }
     }
   }
 
@@ -198,7 +196,6 @@ class MultiplayerManager {
       if (payload.action === 'rotate') this.game.rotateCurrentPiece(payload.dir || 1, 2);
       if (payload.action === 'soft_drop') this.game.moveCurrentPiece(0, 1, 2, true);
     } else {
-      // P2 鏡像接收 P1 的當前方塊與下一塊
       if (payload.action === 'sync_piece') {
         this.game.applyMirroredPiece(payload.piece, payload.nextPiece);
       }

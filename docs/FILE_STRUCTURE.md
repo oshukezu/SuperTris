@@ -4,8 +4,8 @@
 
 ```
 SuperTris/
-├── index.html              # 主頁面入口（單一蘑菇游標、P1發車按鈕、42px純白代碼、電話鍵盤）
-├── style.css               # 選單閃爍動畫、去框透明、全螢幕暫停、10秒Demo動畫 (375行)
+├── index.html              # 主頁面入口（P2蘑菇等待、單一蘑菇游標、P1發車按鈕、電話鍵盤）
+├── style.css               # 蘑菇跳動動畫、選單閃爍動畫、去框透明、全螢幕暫停 (389行)
 ├── README.md               # 中英雙語專案說明文件（GitHub 首頁展示用）
 ├── LICENSE                 # MIT 開源授權
 ├── .gitignore              # Git 忽略設定
@@ -17,15 +17,15 @@ SuperTris/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置
 ├── src/                    # 遊戲核心引擎模組 (上限 400 行/檔)
-│   ├── tetris.js           # 首頁方向鍵選單、閃爍開局、雙人同方塊同步、WakeLock (397行)
+│   ├── tetris.js           # 首頁方向鍵選單、雙人同方塊同步、300ms心跳、WakeLock (398行)
 │   ├── game_ui.js          # HUD 按鈕事件監聽、成績提交輔助 (57行)
+│   ├── controls.js         # 鍵盤監聽、純手勢引擎、雙人權威轉送防回彈 (139行)
 │   ├── renderer.js         # LV3隱藏Ghost、1985金幣拋跳、道具冒出動畫、大磚塊 (215行)
 │   ├── board.js            # 棋盤 Matrix、isBoardEmpty全清檢測、⭐星星解體落砂 (137行)
 │   ├── piece.js            # Tetromino 定義、1x1問號/炸彈方塊支援、SRS (157行)
-│   ├── score.js            # 每消20行升級、AllClear獎勵(+3000&💎5)、99命數上限 (101行)
-│   └── controls.js         # 鍵盤監聽、純手勢引擎、手動下滑 isManual 標記 (166行)
+│   └── score.js            # 每消20行升級、AllClear獎勵(+3000&💎5)、99命數上限 (101行)
 ├── js/                     # 周邊功能模組 (上限 400 行/檔)
-│   ├── multiplayer.js      # P1開局握手、同方塊鏡像同步、42px生成、電話鍵盤 (251行)
+│   ├── multiplayer.js      # P1開局握手、同方塊鏡像同步、P2蘑菇等待、電話鍵盤 (248行)
 │   ├── mario.js            # 瑪利歐道具、Gem寶石💎、動態倒數進度條 (221行)
 │   ├── audio.js            # Web Audio API 8-bit 合成、30ms 碰地微調音效 (162行)
 │   ├── i18n.js             # 繁中/英雙語字典（隊友已連線/等待 1p 開始/開始遊戲） (180行)
