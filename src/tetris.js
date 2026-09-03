@@ -51,7 +51,7 @@ class SuperTrisGame {
       if (!e.target.closest('#set-drawer') && !e.target.closest('#set-menu-btn')) this.hideDrawer();
     });
     document.getElementById('pause-btn')?.addEventListener('click', () => { this.hideDrawer(); this.togglePause(); });
-    document.getElementById('restart-btn')?.addEventListener('click', () => { this.hideDrawer(); this.restartGame(); });
+    document.getElementById('menu-btn')?.addEventListener('click', () => { this.hideDrawer(); this.returnToTitle(); });
     document.getElementById('mute-toggle-btn')?.addEventListener('click', () => { window.SoundEngine.toggleMute(); this.updateSoundBtnText(); });
     document.getElementById('lang-toggle-btn')?.addEventListener('click', () => { window.I18N.toggleLanguage(); this.updateSoundBtnText(); this.updateRoleBadge(); });
     document.getElementById('leaderboard-btn')?.addEventListener('click', () => { this.hideDrawer(); window.Leaderboard.show(); });

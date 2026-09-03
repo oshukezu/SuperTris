@@ -1,4 +1,4 @@
-/* SuperTris 8-Bit Retro Pixel Theme (Unified Dual-Row HUD, Stack Wall & Co-op Rules) */
+/* SuperTris 8-Bit Retro Pixel Theme (Unified Dual-Row HUD, Large Stacking Wall & 21px Menu) */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
@@ -202,12 +202,13 @@ input {
 .nes-logo-text { font-size: 32px; color: #fce4a6; text-shadow: 4px 4px 0 #c0392b, 7px 7px 0 #000; line-height: 1.15; }
 .nes-copyright { font-size: 12px; color: #fff; text-shadow: 2px 2px 0 #000; margin-top: 8px; }
 
+/* 1P / 2P 選單大字級 (21px Bold) */
 .nes-menu {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  width: 82%;
-  max-width: 320px;
+  gap: 16px;
+  width: 86%;
+  max-width: 340px;
   margin-top: 6px;
 }
 .nes-menu-item {
@@ -215,18 +216,23 @@ input {
   border: none;
   color: #fff;
   font-family: var(--pixel-font);
-  font-size: 16px;
-  text-shadow: 2px 2px 0 #000;
+  font-size: 21px; /* 放大至 21px */
+  font-weight: bold;
+  text-shadow: 3px 3px 0 #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
-  padding: 6px 0;
+  padding: 8px 0;
+  letter-spacing: 1px;
+}
+.nes-cursor {
+  font-size: 22px;
 }
 .nes-menu-item:active .nes-cursor { transform: scale(1.3); }
 
-/* 底部平整積木慢速落位堆疊裝飾 */
+/* 底部 24px 大積木平整慢速落位堆疊動畫 */
 .nes-stack-bottom {
   width: 100%;
   display: flex;
@@ -239,25 +245,25 @@ input {
   width: 100%;
   max-width: 360px;
   justify-content: center;
-  gap: 4px;
-  margin-bottom: 2px;
-  z-index: 4;
+  gap: 5px;
+  margin-bottom: 4px;
+  z-index: 5;
 }
 .stack-block {
-  width: 30px;
+  width: 24px;
   height: 24px;
-  border: 2px solid #000;
-  box-shadow: inset 2px 2px 0 rgba(255,255,255,0.4);
-  animation: blockDrop 4s infinite ease-in-out;
+  border: 3px solid #000;
+  box-shadow: inset 3px 3px 0 rgba(255,255,255,0.6), 2px 2px 0 #000;
+  animation: blockDrop 3.5s infinite cubic-bezier(0.25, 1, 0.5, 1);
 }
 .b-red { background: #e74c3c; animation-delay: 0s; }
-.b-gold { background: #f1c40f; animation-delay: 0.5s; }
-.b-blue { background: #3498db; animation-delay: 1.0s; }
-.b-green { background: #2ecc71; animation-delay: 1.5s; }
+.b-gold { background: #f1c40f; animation-delay: 0.4s; }
+.b-blue { background: #3498db; animation-delay: 0.8s; }
+.b-green { background: #2ecc71; animation-delay: 1.2s; }
 
 @keyframes blockDrop {
-  0% { transform: translateY(-40px); opacity: 0; }
-  30%, 80% { transform: translateY(0); opacity: 1; }
+  0% { transform: translateY(-70px); opacity: 0; }
+  35%, 85% { transform: translateY(0); opacity: 1; }
   100% { transform: translateY(0); opacity: 1; }
 }
 
