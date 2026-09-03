@@ -17,9 +17,12 @@ const SupabaseService = {
     return !!this.client;
   },
 
+  isConfigured() {
+    return this.isAvailable();
+  },
+
   // 1. 上傳遊戲成績
   async submitScore(payload) {
-    // payload: { nickname, score, lines_cleared, max_combo, play_duration, level, coins, mode, items_used }
     if (!this.isAvailable()) {
       return { success: true, localOnly: true };
     }
@@ -44,7 +47,6 @@ const SupabaseService = {
     }
 
     try {
-      // 優先查詢 top_scores 視圖或 scores 表
       const { data, error } = await this.client
         .from('scores')
         .select('nickname, score, lines_cleared, max_combo, created_at, mode')
@@ -54,7 +56,6 @@ const SupabaseService = {
 
       if (error) throw error;
 
-      // 前端做同暱稱去重，只保留個人最高分
       const uniqueMap = new Map();
       data.forEach(item => {
         if (!uniqueMap.has(item.nickname)) {
@@ -68,6 +69,10 @@ const SupabaseService = {
     }
   },
 
+  async getTopScores(mode = 'single', limit = 10) {
+    return this.getLeaderboard(mode, limit);
+  },
+
   // 3. 計算勝過百分比 (Percentile)
   async calculatePercentile(score, mode = 'single') {
     if (!this.isAvailable()) {
@@ -75,7 +80,6 @@ const SupabaseService = {
     }
 
     try {
-      // 總筆數
       const { count: total, error: e1 } = await this.client
         .from('scores')
         .select('*', { count: 'exact', head: true })
@@ -85,7 +89,6 @@ const SupabaseService = {
         return window.Storage.calculateLocalPercentile(score, mode);
       }
 
-      // 勝過筆數 (score < currentScore)
       const { count: beaten, error: e2 } = await this.client
         .from('scores')
         .select('*', { count: 'exact', head: true })

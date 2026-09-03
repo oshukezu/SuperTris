@@ -56,7 +56,7 @@ class MultiplayerManager {
     const codeEl = document.getElementById('display-room-code');
     if (codeEl) codeEl.textContent = this.roomCode;
 
-    if (!window.SupabaseService.isConfigured()) {
+    if (!window.SupabaseService.isAvailable()) {
       this.showError(window.I18N.t('connection_failed'));
       return;
     }
@@ -85,7 +85,7 @@ class MultiplayerManager {
   // 切換為加入指定房間 (P2 Guest)
   async joinTargetRoom(code) {
     this.showError('');
-    if (!window.SupabaseService.isConfigured()) {
+    if (!window.SupabaseService.isAvailable()) {
       this.showError(window.I18N.t('connection_failed'));
       return;
     }

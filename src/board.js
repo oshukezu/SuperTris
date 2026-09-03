@@ -1,14 +1,9 @@
-// SuperTris 棋盤管理模組 (Matrix、消行、十字爆破、重力塌陷、星星解體重力落砂)
+// SuperTris 棋盤管理模組 (Matrix、消行、十字爆破、⭐星星重力落砂、全清檢測)
 class Board {
   constructor(cols = 10, rows = 20) {
     this.cols = cols;
     this.rows = rows;
     this.grid = this.createGrid();
-    this.themes = {
-      underground: { main: '#34495e', dark: '#1a252f', highlight: '#7f8c8d', question: '#f1c40f' },
-      castle: { main: '#c0392b', dark: '#78281f', highlight: '#e74c3c', question: '#f39c12' },
-      classic: { main: '#c84c0c', dark: '#3d1a0a', highlight: '#fc9838', question: '#fce4a6' }
-    };
   }
 
   createGrid() {
@@ -19,8 +14,13 @@ class Board {
     this.grid = this.createGrid();
   }
 
-  getCurrentTheme() {
-    return this.themes.classic;
+  isBoardEmpty() {
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        if (this.grid[r][c] !== null) return false;
+      }
+    }
+    return true;
   }
 
   isCollision(blocks) {
@@ -45,17 +45,15 @@ class Board {
     });
   }
 
-  // ⭐ 無敵星星：將方塊解體為 4 個獨立 1x1 方塊，各自垂直向下掉落填補底層凹洞
+  // ⭐ 無敵星星解體演算法：將 piece 拆為 4 個獨立 1x1 方塊各自垂直落底
   shatterAndDropBlocks(piece) {
     const blocks = piece.getBlocks();
-    // 由下至上排序處理 (y 大的先落底)
     blocks.sort((a, b) => b.y - a.y);
 
     blocks.forEach(b => {
       if (b.x < 0 || b.x >= this.cols) return;
       let targetY = Math.max(0, b.y);
 
-      // 沿著自身欄位獨立向下垂直尋找最深可落位坐標
       while (targetY + 1 < this.rows && this.grid[targetY + 1][b.x] === null) {
         targetY++;
       }
@@ -103,14 +101,18 @@ class Board {
 
   removeLines(lines) {
     let questionCount = 0;
+    const qPositions = [];
     lines.forEach(r => {
-      this.grid[r].forEach(cell => {
-        if (cell && cell.isQuestion) questionCount++;
+      this.grid[r].forEach((cell, c) => {
+        if (cell && cell.isQuestion) {
+          questionCount++;
+          qPositions.push({ x: c, y: r });
+        }
       });
       this.grid.splice(r, 1);
       this.grid.unshift(Array(this.cols).fill(null));
     });
-    return questionCount;
+    return { questionCount, qPositions };
   }
 
   applyGravity() {

@@ -1,4 +1,4 @@
-// SuperTris 遊戲主引擎 (雙層HUD、Screen Wake Lock常亮、💥炸彈、⭐星星、PAUSED遮罩)
+// SuperTris 遊戲主引擎 (全清獎勵、1985瑪利歐動畫、常態消行不震塌、WakeLock)
 class SuperTrisGame {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
@@ -50,16 +50,12 @@ class SuperTrisGame {
   }
 
   releaseWakeLock() {
-    if (this.wakeLock) {
-      this.wakeLock.release().catch(() => {});
-      this.wakeLock = null;
-    }
+    if (this.wakeLock) { this.wakeLock.release().catch(() => {}); this.wakeLock = null; }
   }
 
   initHUDButtons() {
-    const setBtn = document.getElementById('set-menu-btn');
     const setDrawer = document.getElementById('set-drawer');
-    setBtn?.addEventListener('click', (e) => { e.stopPropagation(); setDrawer?.classList.toggle('hidden'); });
+    document.getElementById('set-menu-btn')?.addEventListener('click', (e) => { e.stopPropagation(); setDrawer?.classList.toggle('hidden'); });
     document.addEventListener('click', (e) => { if (!e.target.closest('#set-drawer') && !e.target.closest('#set-menu-btn')) setDrawer?.classList.add('hidden'); });
     document.getElementById('pause-btn')?.addEventListener('click', () => { setDrawer?.classList.add('hidden'); this.togglePause(); });
     document.getElementById('menu-btn')?.addEventListener('click', () => { setDrawer?.classList.add('hidden'); this.returnToTitle(); });
@@ -256,45 +252,50 @@ class SuperTrisGame {
     if (isStar) {
       this.board.shatterAndDropBlocks(piece);
       window.SoundEngine.playLineClear(1);
-      this.checkCascadeLineClears(1);
+      this.checkLinesAndClear(true);
       this.spawnPiece(1);
       return;
     }
     if (hasBomb && window.Mario.consumeFireBomb()) {
       this.board.explodeCross(piece.x, piece.y);
       window.SoundEngine.playExplosion();
-      this.checkCascadeLineClears(1);
+      this.board.applyGravity();
+      this.checkLinesAndClear(true);
       this.spawnPiece(1);
       return;
     }
     this.board.lockPiece(piece);
     if (window.Mario) window.Mario.mutateRandomCellToQuestion(this.board);
-    this.checkCascadeLineClears(1);
+    this.checkLinesAndClear(false);
     this.spawnPiece(1);
   }
 
-  checkCascadeLineClears(cascadeLevel = 1) {
-    const fullLines = this.board.findFullLines();
-    if (fullLines.length > 0) {
-      const qCount = this.board.removeLines(fullLines);
-      let mult = cascadeLevel === 2 ? 1.5 : (cascadeLevel === 3 ? 2.0 : (cascadeLevel >= 4 ? 3.0 : 1));
-      this.scoreEngine.addClearedLines(fullLines.length, mult);
-      window.SoundEngine.playLineClear(fullLines.length);
-
-      if (cascadeLevel > 1) {
-        this.scoreEngine.addGems(1);
-        if (window.Mario) window.Mario.showToast(`CASCADE x${cascadeLevel - 1} COMBO! (+💎1)`);
+  checkLinesAndClear(allowCascade = false, cascade = 1) {
+    const full = this.board.findFullLines();
+    if (full.length > 0) {
+      const { questionCount, qPositions } = this.board.removeLines(full);
+      let mult = cascade === 2 ? 1.5 : (cascade === 3 ? 2.0 : (cascade >= 4 ? 3.0 : 1));
+      this.scoreEngine.addClearedLines(full.length, mult);
+      window.SoundEngine.playLineClear(full.length);
+      full.forEach(r => { this.renderer.addCoinAnimation(4, r); this.renderer.addCoinAnimation(5, r); });
+      if (questionCount > 0 && window.Mario) {
+        qPositions.forEach(pos => {
+          const item = window.Mario.rollItem();
+          this.renderer.addItemRiseAnimation(pos.x, pos.y, item);
+          setTimeout(() => { if (!this.isGameOver) window.Mario.triggerItem(item, this); }, 500);
+        });
       }
-      if (qCount > 0 && window.Mario) {
-        for (let i = 0; i < qCount; i++) window.Mario.triggerItem(window.Mario.rollItem(), this);
-      }
-      if (fullLines.length === 4) {
+      if (full.length === 4) {
         const fx = document.getElementById('tetris-firework-fx');
         if (fx) { fx.classList.remove('hidden'); setTimeout(() => fx.classList.add('hidden'), 1200); }
       }
-      this.board.applyGravity();
-      this.checkCascadeLineClears(cascadeLevel + 1);
-    } else if (cascadeLevel === 1) {
+      if (this.board.isBoardEmpty()) {
+        this.scoreEngine.addAllClearBonus();
+        if (window.Mario) window.Mario.showToast('ALL CLEAR! +3,000 & 💎5');
+        window.SoundEngine.play1UP();
+      }
+      if (allowCascade) { this.board.applyGravity(); this.checkLinesAndClear(true, cascade + 1); }
+    } else if (cascade === 1) {
       this.scoreEngine.addClearedLines(0);
     }
   }
@@ -354,14 +355,13 @@ class SuperTrisGame {
     if (this.isPaused || this.isGameOver) return;
     const dt = time - this.lastTime;
     this.lastTime = time;
-
     this.elapsedSeconds += dt / 1000;
     const mins = String(Math.floor(this.elapsedSeconds / 60)).padStart(2, '0');
     const secs = String(Math.floor(this.elapsedSeconds % 60)).padStart(2, '0');
     const timeEl = document.getElementById('hud-time');
     if (timeEl) timeEl.textContent = `${mins}:${secs}`;
     const worldEl = document.getElementById('hud-world');
-    if (worldEl) worldEl.textContent = `1-${Math.min(4, Math.floor(this.scoreEngine.lines / 10) + 1)}`;
+    if (worldEl) worldEl.textContent = `1-${Math.min(4, this.scoreEngine.level)}`;
 
     if (this.isPieceGrounded()) {
       this.lockAccumulator += dt;
@@ -390,7 +390,7 @@ class SuperTrisGame {
       }
       this.lastSyncTime = time;
     }
-    this.renderer.render(this.board, this.p1Piece, null, this.nextPiece, this.mode);
+    this.renderer.render(this.board, this.p1Piece, null, this.nextPiece, this.mode, this.scoreEngine.level);
     requestAnimationFrame((t) => this.gameLoop(t));
   }
 }
