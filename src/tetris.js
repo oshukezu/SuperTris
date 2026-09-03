@@ -1,4 +1,4 @@
-// SuperTris 遊戲核心主引擎 (修復下落循環與整合 [SET] 選單)
+// SuperTris 遊戲核心主引擎 (幀同步 Lock Delay 徹底修復與手動即時鎖定)
 class SuperTrisGame {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
@@ -18,11 +18,10 @@ class SuperTrisGame {
     this.dropCounter = 0;
     this.lastTime = 0;
     this.lastSyncTime = 0;
-    this.lockDelay = 800;
-    this.lockTimer = null;
+    this.lockDelay = 600;
+    this.lockAccumulator = 0;
     this.lockResets = 0;
     this.maxLockResets = 15;
-    this.isGrounded = false;
     this.controls = new window.Controls(this);
     this.initHUDButtons();
     this.initVisibilityListener();
@@ -38,15 +37,15 @@ class SuperTrisGame {
     });
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#set-drawer') && !e.target.closest('#set-menu-btn')) {
-        setDrawer?.classList.add('hidden');
+        this.hideDrawer();
       }
     });
     document.getElementById('pause-btn')?.addEventListener('click', () => {
-      setDrawer?.classList.add('hidden');
+      this.hideDrawer();
       this.togglePause();
     });
     document.getElementById('restart-btn')?.addEventListener('click', () => {
-      setDrawer?.classList.add('hidden');
+      this.hideDrawer();
       this.restartGame();
     });
     document.getElementById('mute-toggle-btn')?.addEventListener('click', () => {
@@ -58,7 +57,7 @@ class SuperTrisGame {
       this.updateSoundBtnText();
     });
     document.getElementById('leaderboard-btn')?.addEventListener('click', () => {
-      setDrawer?.classList.add('hidden');
+      this.hideDrawer();
       window.Leaderboard.show();
     });
     document.getElementById('play-single-btn')?.addEventListener('click', () => this.startNewGame('single'));
@@ -66,6 +65,10 @@ class SuperTrisGame {
     document.getElementById('btn-back-menu')?.addEventListener('click', () => this.returnToTitle());
     document.getElementById('btn-submit-score')?.addEventListener('click', () => this.submitGameOverScore());
     document.getElementById('pause-overlay')?.addEventListener('click', () => this.togglePause());
+  }
+
+  hideDrawer() {
+    document.getElementById('set-drawer')?.classList.add('hidden');
   }
 
   updateSoundBtnText() {
@@ -86,7 +89,10 @@ class SuperTrisGame {
     this.mode = mode;
     this.isGameOver = false;
     this.isPaused = false;
-    this.clearLockTimer();
+    this.lockAccumulator = 0;
+    this.lockResets = 0;
+    this.dropCounter = 0;
+    this.hideDrawer();
     this.board.reset();
     this.scoreEngine.reset();
     this.bag = new window.RandomBag();
@@ -107,7 +113,8 @@ class SuperTrisGame {
 
   returnToTitle() {
     this.isPaused = true;
-    this.clearLockTimer();
+    this.lockAccumulator = 0;
+    this.hideDrawer();
     if (window.Multiplayer && window.Multiplayer.isConnected) {
       window.Multiplayer.leaveRoom();
     }
@@ -128,7 +135,8 @@ class SuperTrisGame {
   }
 
   spawnPiece(playerIndex = 1) {
-    this.clearLockTimer();
+    this.lockAccumulator = 0;
+    this.lockResets = 0;
     let p = this.nextPiece || this.bag.next();
     p.playerIndex = 1;
     p.x = 3;
@@ -139,49 +147,14 @@ class SuperTrisGame {
     }
     this.p1Piece = p;
     this.nextPiece = this.bag.next();
-    this.checkGrounded();
   }
 
-  checkGrounded() {
+  isPieceGrounded() {
     if (!this.p1Piece) return false;
-    const isGround = this.board.isCollision(this.p1Piece.getBlocks(this.p1Piece.x, this.p1Piece.y + 1));
-    if (isGround && !this.isGrounded) {
-      this.isGrounded = true;
-      this.startLockTimer();
-    } else if (!isGround) {
-      this.isGrounded = false;
-      this.clearLockTimer();
-    }
-    return isGround;
+    return this.board.isCollision(this.p1Piece.getBlocks(this.p1Piece.x, this.p1Piece.y + 1));
   }
 
-  startLockTimer() {
-    this.clearLockTimer();
-    this.lockTimer = setTimeout(() => {
-      if (this.p1Piece && this.isGrounded && !this.isPaused && !this.isGameOver) {
-        this.lockCurrentPiece(1);
-      }
-    }, this.lockDelay);
-  }
-
-  refreshLockTimer() {
-    if (this.isGrounded && this.lockResets < this.maxLockResets) {
-      this.lockResets++;
-      this.startLockTimer();
-      window.SoundEngine.playLockSlide();
-    }
-  }
-
-  clearLockTimer() {
-    if (this.lockTimer) {
-      clearTimeout(this.lockTimer);
-      this.lockTimer = null;
-    }
-    this.isGrounded = false;
-    this.lockResets = 0;
-  }
-
-  moveCurrentPiece(dx, dy, playerIndex = 1) {
+  moveCurrentPiece(dx, dy, playerIndex = 1, isManual = false) {
     const piece = this.p1Piece;
     if (!piece || this.isPaused || this.isGameOver) return false;
     const testBlocks = piece.getBlocks(piece.x + dx, piece.y + dy);
@@ -190,12 +163,15 @@ class SuperTrisGame {
       piece.y += dy;
       if (dx !== 0) {
         window.SoundEngine.playMove();
-        if (this.isGrounded) this.refreshLockTimer();
+        if (this.isPieceGrounded() && this.lockResets < this.maxLockResets) {
+          this.lockResets++;
+          this.lockAccumulator = 0;
+          window.SoundEngine.playLockSlide();
+        }
       }
-      this.checkGrounded();
       return true;
-    } else if (dy > 0) {
-      this.checkGrounded();
+    } else if (dy > 0 && isManual) {
+      this.lockCurrentPiece(1);
     }
     return false;
   }
@@ -215,8 +191,11 @@ class SuperTrisGame {
         piece.x += kx;
         piece.y -= ky;
         window.SoundEngine.playRotate();
-        if (this.isGrounded) this.refreshLockTimer();
-        this.checkGrounded();
+        if (this.isPieceGrounded() && this.lockResets < this.maxLockResets) {
+          this.lockResets++;
+          this.lockAccumulator = 0;
+          window.SoundEngine.playLockSlide();
+        }
         return;
       }
     }
@@ -225,7 +204,7 @@ class SuperTrisGame {
   hardDrop(playerIndex = 1) {
     const piece = this.p1Piece;
     if (!piece || this.isPaused || this.isGameOver) return;
-    while (this.moveCurrentPiece(0, 1, 1)) {}
+    while (this.moveCurrentPiece(0, 1, 1, false)) {}
     this.lockCurrentPiece(1);
     window.SoundEngine.playDrop();
   }
@@ -233,7 +212,8 @@ class SuperTrisGame {
   lockCurrentPiece(playerIndex = 1) {
     const piece = this.p1Piece;
     if (!piece) return;
-    this.clearLockTimer();
+    this.lockAccumulator = 0;
+    this.lockResets = 0;
     const isStar = window.Mario && window.Mario.activeEffects.starMode;
     const hasBomb = window.Mario && window.Mario.activeEffects.fireBombsRemaining > 0;
     if (isStar || hasBomb) {
@@ -273,7 +253,7 @@ class SuperTrisGame {
   }
 
   handleLifeLost() {
-    this.clearLockTimer();
+    this.lockAccumulator = 0;
     window.SoundEngine.playLifeLost();
     if (this.scoreEngine.loseLife()) {
       this.triggerGameOver();
@@ -297,7 +277,8 @@ class SuperTrisGame {
 
   async triggerGameOver() {
     this.isGameOver = true;
-    this.clearLockTimer();
+    this.lockAccumulator = 0;
+    this.hideDrawer();
     window.SoundEngine.playGameOver();
     const isNewHigh = window.Storage.recordGame(
       this.scoreEngine.score,
@@ -342,15 +323,24 @@ class SuperTrisGame {
     if (this.isPaused || this.isGameOver) return;
     const dt = time - this.lastTime;
     this.lastTime = time;
-    this.dropCounter += dt;
-    if (this.dropCounter > this.scoreEngine.getDropInterval()) {
-      const moved = this.moveCurrentPiece(0, 1, 1);
-      if (!moved && this.isGrounded && !this.lockTimer) {
+
+    if (this.isPieceGrounded()) {
+      this.lockAccumulator += dt;
+      if (this.lockAccumulator >= this.lockDelay) {
         this.lockCurrentPiece(1);
       }
+    } else {
+      this.lockAccumulator = 0;
+    }
+
+    this.dropCounter += dt;
+    if (this.dropCounter > this.scoreEngine.getDropInterval()) {
+      this.moveCurrentPiece(0, 1, 1, false);
       this.dropCounter = 0;
     }
+
     if (window.Mario) window.Mario.tickTimers(dt / 1000);
+
     if (time - this.lastSyncTime > 150) {
       if (window.Multiplayer && window.Multiplayer.role === 'host') {
         window.Multiplayer.broadcastState({
@@ -364,6 +354,7 @@ class SuperTrisGame {
       }
       this.lastSyncTime = time;
     }
+
     this.renderer.render(this.board, this.p1Piece, null, this.nextPiece, this.mode);
     requestAnimationFrame((t) => this.gameLoop(t));
   }

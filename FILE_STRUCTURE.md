@@ -15,12 +15,12 @@ SuperTris/
 │   └── workflows/
 │       └── deploy.yml      # GitHub Pages 自動部署 Actions 配置
 ├── src/                    # 遊戲核心引擎模組 (上限 400 行/檔)
-│   ├── tetris.js           # 主循環、下落循環修復、[SET]選單控制、800ms Lock Delay (372行)
+│   ├── tetris.js           # 主循環、幀同步 Lock Delay、手動即時鎖定、[SET]控制 (363行)
 │   ├── renderer.js         # 畫面繪製、像素磚塊紋理、置頂 HUD 迷你 Next 預覽 (110行)
 │   ├── board.js            # 棋盤 Matrix、消行判定、垂直重力塌陷演算法 (172行)
 │   ├── piece.js            # Tetromino 定義、1x1問號磚支援、SRS Wall Kick (157行)
 │   ├── score.js            # 計分、Combo、溫和速度曲線、99命數上限 (138行)
-│   └── controls.js         # 鍵盤監聽、純手勢引擎、60ms 連續高速直落 (168行)
+│   └── controls.js         # 鍵盤監聽、純手勢引擎、手動下滑 isManual 標記 (166行)
 ├── js/                     # 周邊功能模組 (上限 400 行/檔)
 │   ├── multiplayer.js      # Supabase Realtime 4碼配對、動作廣播與同步 (239行)
 │   ├── mario.js            # 瑪利歐道具、Emoji圖示、動態倒數進度條 (221行)

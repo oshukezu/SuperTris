@@ -1,4 +1,4 @@
-// SuperTris 控制輸入模組 (鍵盤 + 手機純手勢引擎與連續直落)
+// SuperTris 控制輸入模組 (手動向下即時傳遞 isManual 旗標)
 class Controls {
   constructor(game) {
     this.game = game;
@@ -31,21 +31,21 @@ class Controls {
       const isMulti = this.game.mode === 'coop' && window.Multiplayer && window.Multiplayer.isConnected;
       const role = window.Multiplayer ? window.Multiplayer.role : null;
 
-      // 左右位移 (單人 或 P1 舵手)
+      // 左右位移
       if (!isMulti || role === 'host') {
         if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
-          this.game.moveCurrentPiece(-1, 0, 1);
+          this.game.moveCurrentPiece(-1, 0, 1, true);
           if (isMulti) window.Multiplayer.sendAction('move', { dx: -1 });
         } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-          this.game.moveCurrentPiece(1, 0, 1);
+          this.game.moveCurrentPiece(1, 0, 1, true);
           if (isMulti) window.Multiplayer.sendAction('move', { dx: 1 });
         }
       }
 
-      // 旋轉與軟落 (單人 或 P2 引擎)
+      // 旋轉與手動軟落 (isManual = true)
       if (!isMulti || role === 'guest') {
         if (e.code === 'ArrowDown' || e.code === 'KeyS') {
-          this.game.moveCurrentPiece(0, 1, 1);
+          this.game.moveCurrentPiece(0, 1, 1, true);
           if (isMulti) window.Multiplayer.sendAction('soft_drop', {});
         } else if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'KeyX') {
           this.game.rotateCurrentPiece(1, 1);
@@ -62,11 +62,10 @@ class Controls {
     });
   }
 
-  // 手機純手勢引擎 (滑動平移、持續下滑極速直落、單擊旋轉)
   initTouchGestures() {
     const touchArea = document.getElementById('touch-gesture-area') || document.body;
-    const swipeThreshold = 20; // 降低水平移動觸發門檻提升靈敏度 (20px)
-    const softDropThreshold = 22; // 下滑加速門檻 (22px)
+    const swipeThreshold = 20;
+    const softDropThreshold = 22;
 
     touchArea.addEventListener('touchstart', (e) => {
       if (e.target.closest('button') || e.target.closest('input')) return;
@@ -84,7 +83,7 @@ class Controls {
 
     touchArea.addEventListener('touchmove', (e) => {
       if (e.target.closest('button') || e.target.closest('input')) return;
-      e.preventDefault(); // 阻斷瀏覽器原生下拉刷新與工具列
+      e.preventDefault();
       if (this.game.isPaused || this.game.isGameOver) return;
 
       const touch = e.touches[0];
@@ -98,26 +97,26 @@ class Controls {
       if (!isMulti || role === 'host') {
         if (Math.abs(deltaX) >= swipeThreshold) {
           const dir = deltaX > 0 ? 1 : -1;
-          this.game.moveCurrentPiece(dir, 0, 1);
+          this.game.moveCurrentPiece(dir, 0, 1, true);
           this.lastSwipeX = touch.clientX;
           if (isMulti) window.Multiplayer.sendAction('move', { dx: dir });
         }
       }
 
-      // 垂直下滑：觸控按住持續「極速連續直落 (60ms)」
+      // 垂直下滑：手動向下推動 (isManual = true)
       if (!isMulti || role === 'guest') {
         if (deltaY >= softDropThreshold && !this.isSwipingDown) {
           this.isSwipingDown = true;
-          this.game.moveCurrentPiece(0, 1, 1);
+          this.game.moveCurrentPiece(0, 1, 1, true);
           if (isMulti) window.Multiplayer.sendAction('soft_drop', {});
 
           clearInterval(this.softDropInterval);
           this.softDropInterval = setInterval(() => {
             if (this.isSwipingDown && !this.game.isPaused && !this.game.isGameOver) {
-              this.game.moveCurrentPiece(0, 1, 1);
+              this.game.moveCurrentPiece(0, 1, 1, true);
               if (isMulti) window.Multiplayer.sendAction('soft_drop', {});
             }
-          }, 60); // 縮短為 60ms，提供快速順暢的連續直落手感
+          }, 60);
         }
       }
     }, { passive: false });
@@ -135,7 +134,6 @@ class Controls {
       const totalDistX = Math.abs(changedTouch.clientX - this.touchStartX);
       const totalDistY = Math.abs(changedTouch.clientY - this.touchStartY);
 
-      // 單擊旋轉判斷 (時間 < 220ms 且位移 < 14px)
       if (duration < 220 && totalDistX < 14 && totalDistY < 14) {
         const isMulti = this.game.mode === 'coop' && window.Multiplayer && window.Multiplayer.isConnected;
         const role = window.Multiplayer ? window.Multiplayer.role : null;
