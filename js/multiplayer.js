@@ -1,4 +1,4 @@
-// SuperTris 多人連線模組 (Supabase Realtime 權威狀態同步與雙向暫停)
+// SuperTris 多人連線模組 (打開即開房、產生/輸入代碼、P1權威即時同步)
 class MultiplayerManager {
   constructor() {
     this.game = null;
@@ -17,13 +17,12 @@ class MultiplayerManager {
     const playCoopBtn = document.getElementById('play-coop-btn');
     const roomModal = document.getElementById('room-modal');
     const btnClose = document.getElementById('btn-close-room-modal');
-    const btnCreate = document.getElementById('btn-create-room');
     const btnJoin = document.getElementById('btn-join-room');
     const inputCode = document.getElementById('join-code-input');
 
     playCoopBtn?.addEventListener('click', () => {
       roomModal?.classList.remove('hidden');
-      this.resetRoomModal();
+      this.openDirectHosting();
     });
 
     btnClose?.addEventListener('click', () => {
@@ -31,21 +30,14 @@ class MultiplayerManager {
       this.leaveRoom();
     });
 
-    btnCreate?.addEventListener('click', () => this.createRoom());
     btnJoin?.addEventListener('click', () => {
       const code = inputCode ? inputCode.value.trim() : '';
       if (code.length === 4) {
-        this.joinRoom(code);
+        this.joinTargetRoom(code);
       } else {
         this.showError(window.I18N.t('invalid_room_code'));
       }
     });
-  }
-
-  resetRoomModal() {
-    document.getElementById('room-setup-view')?.classList.remove('hidden');
-    document.getElementById('room-waiting-view')?.classList.add('hidden');
-    this.showError('');
   }
 
   showError(msg) {
@@ -57,7 +49,9 @@ class MultiplayerManager {
     return String(Math.floor(1000 + Math.random() * 9000));
   }
 
-  async createRoom() {
+  // 打開彈窗即刻自動開房 (P1 Host)
+  async openDirectHosting() {
+    this.showError('');
     if (!window.SupabaseService.isConfigured()) {
       this.showError(window.I18N.t('connection_failed'));
       return;
@@ -65,11 +59,14 @@ class MultiplayerManager {
 
     this.role = 'host';
     this.roomCode = this.generateRoomCode();
-    this.showWaitingView(this.roomCode, 'P1 (Steerer)');
+    const codeEl = document.getElementById('display-room-code');
+    if (codeEl) codeEl.textContent = this.roomCode;
     this.subscribeChannel(this.roomCode);
   }
 
-  async joinRoom(code) {
+  // 切換為加入指定房間 (P2 Guest)
+  async joinTargetRoom(code) {
+    this.showError('');
     if (!window.SupabaseService.isConfigured()) {
       this.showError(window.I18N.t('connection_failed'));
       return;
@@ -77,17 +74,7 @@ class MultiplayerManager {
 
     this.role = 'guest';
     this.roomCode = code;
-    this.showWaitingView(this.roomCode, 'P2 (Engine)');
     this.subscribeChannel(this.roomCode);
-  }
-
-  showWaitingView(code, roleText) {
-    document.getElementById('room-setup-view')?.classList.add('hidden');
-    document.getElementById('room-waiting-view')?.classList.remove('hidden');
-    const codeEl = document.getElementById('display-room-code');
-    if (codeEl) codeEl.textContent = code;
-    const roleEl = document.getElementById('room-role-hint');
-    if (roleEl) roleEl.textContent = roleText;
   }
 
   subscribeChannel(code) {
@@ -141,7 +128,6 @@ class MultiplayerManager {
     });
   }
 
-  // 雙向即時暫停/繼續權威同步
   sendPauseSync(isPaused) {
     if (!this.isConnected) return;
     this.sendAction({ action: 'sync_pause', isPaused });

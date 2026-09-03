@@ -4,7 +4,7 @@
 
 ```
 SuperTris/
-├── index.html              # 主頁面入口（全螢幕暫停遮罩、雙層HUD四欄等寬、純藍底懸浮）
+├── index.html              # 主頁面入口（產生/輸入代碼一步到位、雙層HUD四欄等寬、純藍底懸浮）
 ├── style.css               # 4欄Grid對齊、全螢幕暫停樣式、10秒Demo動畫、21px選單 (366行)
 ├── README.md               # 中英雙語專案說明文件（GitHub 首頁展示用）
 ├── LICENSE                 # MIT 開源授權
@@ -24,10 +24,10 @@ SuperTris/
 │   ├── score.js            # 計分、Gem寶石系統、連鎖階梯倍率、99命數上限 (122行)
 │   └── controls.js         # 鍵盤監聽、純手勢引擎、手動下滑 isManual 標記 (166行)
 ├── js/                     # 周邊功能模組 (上限 400 行/檔)
-│   ├── multiplayer.js      # Supabase Realtime 4碼配對、P1權威即時暫停同步 (190行)
+│   ├── multiplayer.js      # 打開即開房、產生/輸入代碼切換、P1權威即時暫停同步 (176行)
 │   ├── mario.js            # 瑪利歐道具、Gem寶石💎、動態倒數進度條 (221行)
 │   ├── audio.js            # Web Audio API 8-bit 合成、30ms 碰地微調音效 (162行)
-│   ├── i18n.js             # 繁中/英雙語字典（P1 PAUSE提示、MAIN MENU、星星說明） (176行)
+│   ├── i18n.js             # 繁中/英雙語字典（產生/輸入代碼、Share/Enter code） (172行)
 │   ├── leaderboard.js      # 排行榜 Modal 渲染、固定 TOP 10、空值 -- 填補 (97行)
 │   ├── supabase-service.js # Supabase REST API / JS SDK 整合與分數上傳 (106行)
 │   ├── storage.js          # 本地 localStorage 離線資料管理 (90行)

@@ -150,36 +150,37 @@
     <h2 style="color: var(--accent-gold); font-size: 16px;" data-i18n="pause">PAUSED (TAP ANYWHERE TO RESUME)</h2>
   </div>
 
-  <!-- 雙人跨裝置配對房間 Modal (加寬大器 + 分工規則說明) -->
+  <!-- 雙人跨裝置配對房間 Modal (產生代碼 / 輸入代碼 一步到位) -->
   <div id="room-modal" class="modal-backdrop hidden">
     <div class="pixel-modal room-modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 class="modal-title" data-i18n="room_title">雙人跨機連線合作</h2>
+        <h2 class="modal-title" data-i18n="room_title">雙人連線合作</h2>
         <button class="pixel-btn pixel-btn-red" id="btn-close-room-modal" style="padding: 4px 8px;">X</button>
       </div>
 
-      <div id="room-setup-view" style="display: flex; flex-direction: column; gap: 14px;">
-        <button class="pixel-btn pixel-btn-accent room-action-btn" id="btn-create-room" data-i18n="create_room">建立新房間 (P1 舵手)</button>
-        <div style="font-size: 11px; color: #888;">— OR —</div>
-        <input type="text" id="join-code-input" class="pixel-input" maxlength="4" placeholder="請輸入 4 位房間碼" data-i18n-placeholder="enter_room_code" />
-        <button class="pixel-btn room-action-btn" id="btn-join-room" data-i18n="join_room">加入房間 (P2 引擎)</button>
+      <!-- 上半部：產生代碼 (P1 房主) -->
+      <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
+        <div style="font-size: 13px; color: var(--accent-gold); font-weight: bold;" data-i18n="share_code_title">產生代碼</div>
+        <div id="display-room-code" style="font-size: 32px; letter-spacing: 4px; color: #fff; background: #000; padding: 6px 18px; border: 2px solid var(--accent-gold);">----</div>
+        <div style="font-size: 11px; color: #aaa;" class="pixel-pulse" data-i18n="waiting_partner">等待隊友加入中...</div>
       </div>
 
-      <div id="room-waiting-view" class="hidden" style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
-        <div style="font-size: 13px; color: var(--accent-gold);" data-i18n="your_room_code">房間代碼</div>
-        <div id="display-room-code" style="font-size: 32px; letter-spacing: 4px; color: #fff; background: #000; padding: 6px 16px; border: 2px solid var(--accent-gold);">----</div>
-        <div id="room-role-hint" style="font-size: 13px; color: #2ecc71; line-height: 1.5;"></div>
-        <div style="font-size: 12px; color: #aaa;" class="pixel-pulse" data-i18n="waiting_partner">等待隊友加入中...</div>
+      <!-- 分隔字 -->
+      <div style="font-size: 12px; color: #888;" data-i18n="or_divider">或</div>
+
+      <!-- 下半部：輸入代碼 (P2 隊友) -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 13px; color: var(--accent-gold); font-weight: bold;" data-i18n="enter_code_title">輸入代碼</div>
+        <input type="text" id="join-code-input" class="pixel-input" maxlength="4" placeholder="請輸入代碼" data-i18n-placeholder="enter_code_title" />
+        <button class="pixel-btn pixel-btn-accent room-action-btn" id="btn-join-room" data-i18n="join_room_btn">加入房間</button>
       </div>
 
-      <!-- 合作分工規則說明 -->
-      <div class="coop-rules-card">
-        <div class="coop-rules-title" data-i18n="coop_rule_title">🎮 玩法規則：兩人同心操控同一塊方塊！</div>
-        <div class="coop-rules-item" data-i18n="coop_rule_p1">🔹 P1 舵手：負責「左右水平移動」</div>
-        <div class="coop-rules-item" data-i18n="coop_rule_p2">🔸 P2 引擎：負責「單擊旋轉」與「下滑加速」</div>
+      <!-- 合作分工規則說明 (零 Emoji、單行) -->
+      <div class="coop-rules-card" style="margin-top: 4px;">
+        <div class="coop-rules-item" style="font-size: 11px; color: #ccc;" data-i18n="coop_rule_text">規則：P1 負責左右移動，P2 負責旋轉與加速</div>
       </div>
 
-      <div id="room-error-msg" style="color: #e74c3c; font-size: 12px;"></div>
+      <div id="room-error-msg" style="color: #e74c3c; font-size: 11px;"></div>
     </div>
   </div>
 
